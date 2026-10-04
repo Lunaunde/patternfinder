@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://xvslsp7nctaw"]
+
+[ext_resource type="Texture2D" uid="uid://dmi77usuycwsu" path="res://Assets/Texture/ui/garden_film_detected@3x.png" id="1_jcc0x"]
+[ext_resource type="Script" uid="uid://de75lc86153s1" path="res://Script/Entity/Frame.cs" id="1_klxru"]
+[ext_resource type="Texture2D" uid="uid://day7llqnnvvpd" path="res://Assets/Texture/ui/garden_film_normal@3x.png" id="2_klxru"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_nfb70"]
+size = Vector2(489, 489)
+
+[node name="Frame" type="Node2D" unique_id=231590717]
+script = ExtResource("1_klxru")
+
+[node name="Detected" type="Sprite2D" parent="." unique_id=2015036215]
+texture = ExtResource("1_jcc0x")
+
+[node name="Undetected" type="Sprite2D" parent="." unique_id=264575407]
+texture = ExtResource("2_klxru")
+
+[node name="Area2D" type="Area2D" parent="." unique_id=1328656599]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1031664710]
+shape = SubResource("RectangleShape2D_nfb70")

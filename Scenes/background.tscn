@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://d1ry6aaq1jurr"]
+
+[ext_resource type="Script" uid="uid://b86td457go3ct" path="res://Script/Entity/Background.cs" id="1_sn1xx"]
+
+[node name="Background" type="Node2D" unique_id=176642519]
+script = ExtResource("1_sn1xx")
+
+[node name="Texture" type="Sprite2D" parent="." unique_id=1189997281]
+z_index = -1

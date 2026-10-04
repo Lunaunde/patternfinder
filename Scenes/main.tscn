@@ -1,0 +1,36 @@
+[gd_scene format=3 uid="uid://cxnn8r0j40inb"]
+
+[ext_resource type="Script" uid="uid://dxsm8jwauutd0" path="res://Script/Boost/Main.cs" id="1_8gbba"]
+[ext_resource type="PackedScene" uid="uid://d1ry6aaq1jurr" path="res://Scenes/background.tscn" id="2_jjvhh"]
+[ext_resource type="Script" uid="uid://c1id03ken2eig" path="res://Script/UI/DragDetection.cs" id="3_8gbba"]
+[ext_resource type="Texture2D" uid="uid://ds4h80wdyiy1j" path="res://Assets/Texture/gardern/背景/背景副本.png" id="3_kry3j"]
+[ext_resource type="PackedScene" uid="uid://xvslsp7nctaw" path="res://Scenes/frame.tscn" id="4_kry3j"]
+[ext_resource type="PackedScene" uid="uid://cejaybl0427oh" path="res://Scenes/pattern_object.tscn" id="5_21xkr"]
+
+[node name="Main" type="Node" unique_id=1917081249]
+script = ExtResource("1_8gbba")
+BackgroundScene = ExtResource("2_jjvhh")
+BackgroundTexture = ExtResource("3_kry3j")
+FarmeScene = ExtResource("4_kry3j")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=797673503]
+
+[node name="UILayer" type="CanvasLayer" parent="." unique_id=765157632]
+
+[node name="DragDetection" type="Control" parent="UILayer" unique_id=1519289878]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 2430.0
+offset_bottom = 1080.0
+script = ExtResource("3_8gbba")
+
+[node name="VirtualJoystick" type="VirtualJoystick" parent="UILayer" unique_id=1518827382]
+offset_left = 200.0
+offset_top = 900.0
+offset_right = 240.0
+offset_bottom = 940.0
+joystick_size = 200.0
+tip_size = 100.0
+
+[node name="PatternObject" parent="." unique_id=1237115862 instance=ExtResource("5_21xkr")]
+position = Vector2(-754, -23)
