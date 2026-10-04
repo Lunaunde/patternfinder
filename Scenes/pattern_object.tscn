@@ -2,14 +2,9 @@
 
 [ext_resource type="Script" uid="uid://dpv4xhi8gek6x" path="res://Script/Entity/PatternObject.cs" id="1_4j52r"]
 [ext_resource type="Script" uid="uid://d2b11j7putxxo" path="res://Script/Entity/PatternObjectArea.cs" id="2_lnddq"]
-[ext_resource type="Texture2D" uid="uid://mwscmbnq2q04" path="res://Assets/Texture/gardern/6.png" id="2_yeln7"]
 
-[node name="PatternObject" type="Node2D" unique_id=1237115862]
+[node name="PatternObject" type="Sprite2D" unique_id=1319498223]
 script = ExtResource("1_4j52r")
-
-[node name="Texture" type="Sprite2D" parent="." unique_id=1723847339]
-scale = Vector2(0.3984375, 0.41259766)
-texture = ExtResource("2_yeln7")
 
 [node name="Area2D" type="Area2D" parent="." unique_id=441737897]
 script = ExtResource("2_lnddq")

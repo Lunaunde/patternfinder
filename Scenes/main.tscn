@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://ds4h80wdyiy1j" path="res://Assets/Texture/gardern/背景/背景副本.png" id="3_kry3j"]
 [ext_resource type="PackedScene" uid="uid://xvslsp7nctaw" path="res://Scenes/frame.tscn" id="4_kry3j"]
 [ext_resource type="PackedScene" uid="uid://cejaybl0427oh" path="res://Scenes/pattern_object.tscn" id="5_21xkr"]
+[ext_resource type="Texture2D" uid="uid://biqsvxuqixdn5" path="res://Assets/Texture/gardern/11.png" id="7_6bp64"]
 
 [node name="Main" type="Node" unique_id=1917081249]
 script = ExtResource("1_8gbba")
@@ -25,12 +26,14 @@ offset_bottom = 1080.0
 script = ExtResource("3_8gbba")
 
 [node name="VirtualJoystick" type="VirtualJoystick" parent="UILayer" unique_id=1518827382]
-offset_left = 200.0
-offset_top = 900.0
-offset_right = 240.0
-offset_bottom = 940.0
-joystick_size = 200.0
-tip_size = 100.0
+offset_left = 300.0
+offset_top = 800.0
+offset_right = 340.0
+offset_bottom = 840.0
+joystick_size = 400.0
+tip_size = 200.0
 
-[node name="PatternObject" parent="." unique_id=1237115862 instance=ExtResource("5_21xkr")]
-position = Vector2(-754, -23)
+[node name="PatternObject" parent="." unique_id=1319498223 instance=ExtResource("5_21xkr")]
+position = Vector2(-780.5, -169.75)
+scale = Vector2(0.23974611, 0.2097168)
+texture = ExtResource("7_6bp64")
