@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://c4rkfypp23atu"]
+
+[ext_resource type="Script" uid="uid://bdb6lp6v7uo8r" path="res://Script/Entity/Level.cs" id="1_level"]
+[ext_resource type="PackedScene" uid="uid://d1ry6aaq1jurr" path="res://Scenes/base/background.tscn" id="2_background"]
+[ext_resource type="Texture2D" uid="uid://ds4h80wdyiy1j" path="res://Assets/Texture/gardern/背景/背景副本.png" id="3_background"]
+[ext_resource type="PackedScene" uid="uid://cejaybl0427oh" path="res://Scenes/base/pattern_object.tscn" id="4_pattern"]
+[ext_resource type="Texture2D" uid="uid://bg261bsbght7s" path="res://Assets/Texture/gardern/25.png" id="5_plant"]
+[ext_resource type="Texture2D" uid="uid://dyfpx0og443u8" path="res://Assets/Texture/gardern/honeysuckle/零件一副本/未标题-1.png" id="7_pr8x5"]
+[ext_resource type="Script" uid="uid://bf05ct254r1vd" path="res://Script/Data/PatternVariant.cs" id="7_variant"]
+[ext_resource type="PackedScene" uid="uid://c3sn5sjhu6ouy" path="res://Scenes/levels/honeysucklePuzzle.tscn" id="8_rs4x7"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_honeysuckle_plant"]
+atlas = ExtResource("5_plant")
+region = Rect2(333, 153, 1292, 1895)
+
+[sub_resource type="Resource" id="PatternVariant_honeysuckle_unit"]
+script = ExtResource("7_variant")
+MaterialId = "honeysuckle-unit"
+MaterialName = "忍冬单体纹"
+MaterialTexture = ExtResource("7_pr8x5")
+Scale = Vector2(0.25, 0.25)
+
+[node name="Level" type="Node2D" unique_id=713622050]
+script = ExtResource("1_level")
+DisplayName = "忍冬藤"
+
+[node name="Background" parent="." unique_id=780951451 instance=ExtResource("2_background")]
+BackgroundTexture = ExtResource("3_background")
+
+[node name="Patterns" type="Node2D" parent="." unique_id=1940124788]
+
+[node name="PatternObject" parent="Patterns" unique_id=134272186 instance=ExtResource("4_pattern")]
+position = Vector2(-780.5, -169.75)
+scale = Vector2(0.234, 0.234)
+texture = SubResource("AtlasTexture_honeysuckle_plant")
+Variants = Array[ExtResource("7_variant")]([SubResource("PatternVariant_honeysuckle_unit")])
+
+[node name="Puzzle" parent="." unique_id=1173809317 instance=ExtResource("8_rs4x7")]
+visible = false

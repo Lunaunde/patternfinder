@@ -1,0 +1,25 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://Script/UI/NotebookUI.cs" id="1_notebook"]
+[ext_resource type="Texture2D" path="res://Assets/Texture/gardern/手账1.png" id="2_art"]
+[ext_resource type="Script" path="res://Script/Data/NotebookContent.cs" id="3_content"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_book"]
+atlas = ExtResource("2_art")
+region = Rect2(42, 570, 1618, 1260)
+
+[sub_resource type="Resource" id="Resource_content"]
+script = ExtResource("3_content")
+Title = "拼接笔记本"
+Instructions = "从下方素材卡拖出纹样\n放到纸面上进行拼接\n\n原卡保留，可重复取用"
+DeletePrompt = "拖到这里删除纹样碎片"
+DeleteHoverPrompt = "松手删除碎片"
+BackLabel = "返回花园"
+DeleteSelectionLabel = "删除选中碎片"
+
+[node name="Notebook" type="Control"]
+offset_right = 2430.0
+offset_bottom = 1080.0
+script = ExtResource("1_notebook")
+NotebookTexture = SubResource("AtlasTexture_book")
+Content = SubResource("Resource_content")

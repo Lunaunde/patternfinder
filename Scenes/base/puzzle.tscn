@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dksn1rksfvp5v"]
+
+[ext_resource type="Script" uid="uid://c7g1himam25b0" path="res://Script/Puzzle/Puzzle.cs" id="1_puzzle"]
+[ext_resource type="Script" uid="uid://cdyfhj5byjil5" path="res://Script/Data/PuzzleDefinition.cs" id="2_definition"]
+[ext_resource type="Script" uid="uid://udbch6aek8nk" path="res://Script/Puzzle/EditorOnlyPreview.cs" id="4_preview"]
+[ext_resource type="Texture2D" uid="uid://b70cgpnux8k80" path="res://Assets/Texture/gardern/手账1.png" id="5_notebook"]
+
+[sub_resource type="Resource" id="PuzzleDefinition_shared"]
+script = ExtResource("2_definition")
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_notebook_preview"]
+atlas = ExtResource("5_notebook")
+region = Rect2(42, 570, 1618, 1260)
+
+[node name="Puzzle" type="Node2D" unique_id=1173809317]
+script = ExtResource("1_puzzle")
+Definition = SubResource("PuzzleDefinition_shared")
+
+[node name="NotebookPreview" type="Sprite2D" parent="." unique_id=910762008]
+scale = Vector2(0.815822, 0.815822)
+texture = SubResource("AtlasTexture_notebook_preview")
+script = ExtResource("4_preview")
+
+[node name="PuzzleBases" type="Node2D" parent="." unique_id=1978903963]
+
+[node name="PuzzleBlocks" type="Node2D" parent="." unique_id=661982213]

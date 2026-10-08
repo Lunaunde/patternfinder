@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Script/Entity/Level.cs" id="1_level"]
+[ext_resource type="PackedScene" path="res://Scenes/base/background.tscn" id="2_background"]
+[ext_resource type="PackedScene" path="res://Scenes/base/puzzle.tscn" id="3_puzzle"]
+
+[node name="Level" type="Node2D"]
+script = ExtResource("1_level")
+
+[node name="Background" parent="." instance=ExtResource("2_background")]
+
+[node name="Patterns" type="Node2D" parent="."]
+
+[node name="Puzzle" parent="." instance=ExtResource("3_puzzle")]

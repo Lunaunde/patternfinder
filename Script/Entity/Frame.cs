@@ -23,24 +23,69 @@ public partial class Frame : Node2D
 	// Vector2 _detectingStartPosition;
 	DetectingPattern _detectingPattern;
 	Vector2 _stickForce;
-	private void DetectingProcess()
+	public bool IsDetected => _detectType == DetectType.Detected;
+
+	public Rect2 CaptureWorldRect
 	{
-		_detectingPattern = new DetectingPattern();
-		_detectingPattern.detectingInsideRate = -float.MaxValue;
+		get
+		{
+			var collisionShape = GetNodeOrNull<CollisionShape2D>("Area2D/CollisionShape2D");
+			if(collisionShape?.Shape == null)
+				return new Rect2(GlobalPosition, Vector2.Zero);
+
+			Rect2 localRect = collisionShape.Shape.GetRect();
+			Transform2D transform = collisionShape.GlobalTransform;
+			Rect2 worldRect = new Rect2(transform * localRect.Position, Vector2.Zero);
+			worldRect = worldRect.Expand(transform * new Vector2(localRect.End.X, localRect.Position.Y));
+			worldRect = worldRect.Expand(transform * localRect.End);
+			return worldRect.Expand(transform * new Vector2(localRect.Position.X, localRect.End.Y));
+		}
+	}
+
+	public bool TryGetCaptureTarget(out PatternObject target, out float insideRate)
+	{
+		target = null;
+		insideRate = 0.0f;
+		if(!TryFindBestPattern(out var candidate))
+			return false;
+
+		target = candidate.patternObjectArea.Pattern;
+		insideRate = candidate.detectingInsideRate;
+		return true;
+	}
+
+	private bool TryFindBestPattern(out DetectingPattern candidate)
+	{
+		candidate = new DetectingPattern { detectingInsideRate = -float.MaxValue };
+		if(!GodotObject.IsInstanceValid(_area) || !_area.IsInsideTree())
+			return false;
+
 		foreach(var body in _area.GetOverlappingAreas())
 		{
-			if(body is PatternObjectArea patternObjectArea)
+			if(body is PatternObjectArea patternObjectArea &&
+				GodotObject.IsInstanceValid(patternObjectArea) && !patternObjectArea.IsQueuedForDeletion())
 			{
-				if(patternObjectArea.FrameInsideRate(GlobalPosition) > _detectingPattern.detectingInsideRate)
+				PatternObject pattern = patternObjectArea.Pattern;
+				var collisionShape = patternObjectArea.GetNodeOrNull<CollisionShape2D>("CollisionShape2D");
+				if(!GodotObject.IsInstanceValid(pattern) || pattern.IsQueuedForDeletion() ||
+					collisionShape?.Shape == null || collisionShape.Disabled)
+					continue;
+
+				float insideRate = patternObjectArea.FrameInsideRate(GlobalPosition);
+				if(float.IsFinite(insideRate) && insideRate > candidate.detectingInsideRate)
 				{
-					GD.Print("Detecting pattern: " + patternObjectArea.Name + ", inside rate: " + patternObjectArea.FrameInsideRate(GlobalPosition));
-					_detectingPattern.patternObjectArea = patternObjectArea;
-					_detectingPattern.detectingInsideRate = patternObjectArea.FrameInsideRate(GlobalPosition);
+					candidate.patternObjectArea = patternObjectArea;
+					candidate.detectingInsideRate = insideRate;
 				}
 			}
 		}
+		return candidate.patternObjectArea != null;
+	}
 
-		if(_detectingPattern.detectingInsideRate > Config.FRAME_DETECTED_RATE)
+	private void DetectingProcess()
+	{
+		if(TryFindBestPattern(out _detectingPattern) &&
+			_detectingPattern.detectingInsideRate > Config.FRAME_DETECTED_RATE)
 		{
 			_detectType = DetectType.Detected;
 			// _detectingPatternPosition = _detectingPattern.patternObjectArea.GlobalPosition;
@@ -66,10 +111,7 @@ public partial class Frame : Node2D
 		double frameInsideRat = _detectingPattern.patternObjectArea.FrameInsideRate(GlobalPosition);
 		if(frameInsideRat < Config.OUT_OF_STICK_RATE)
 		{
-			_detectType = DetectType.None;
-			_detectedSprite.Modulate = new Color(1, 1, 1, 0.0f);
-			_undetectedSprite.Modulate = new Color(1, 1, 1, 1.0f);
-			_stickForce = Vector2.Zero;
+			ExitDetectedState();
 		}
 		else
 		{
@@ -77,6 +119,13 @@ public partial class Frame : Node2D
 			_undetectedSprite.Modulate = new Color(1, 1, 1, (float)(1.0f-frameInsideRat));
 			_stickForce = (_detectingPattern.patternObjectArea.GlobalPosition - GlobalPosition).Normalized() * (float)(frameInsideRat * Config.STICK_FORCE_RATE);
 		}
+	}
+	private void ExitDetectedState()
+	{
+		_detectType = DetectType.None;
+		_detectedSprite.Modulate = new Color(1, 1, 1, 0.0f);
+		_undetectedSprite.Modulate = new Color(1, 1, 1, 1.0f);
+		_stickForce = Vector2.Zero;
 	}
 	public void Move(Vector2 delta)
 	{
@@ -90,10 +139,15 @@ public partial class Frame : Node2D
 			// 	MoveToDetectingPattern();
 			// 	break;
 			case DetectType.Detected:
+				if(!TryFindBestPattern(out _detectingPattern))
+				{
+					ExitDetectedState();
+					GlobalPosition += delta * Config.JOYSTICK_SPEED;
+					break;
+				}
 				StickToDetectingPattern();
 				if(_detectingPattern.patternObjectArea.FrameInsideRate(GlobalPosition) < Config.FORCE_STICK_RATE || delta.Length() > Config.STICK_FORCE_RATE)
 				{
-					GD.Print("FrameInsideRate: " + _detectingPattern.patternObjectArea.FrameInsideRate(GlobalPosition));
 					GlobalPosition += (delta + _stickForce) * Config.JOYSTICK_SPEED;
 				}
 				else

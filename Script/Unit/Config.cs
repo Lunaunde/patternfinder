@@ -8,4 +8,5 @@ public static class Config
     public static float STICK_FORCE_RATE = 0.8f;
     public static float FORCE_STICK_RATE = 0.985f;
     public static float OUT_OF_STICK_RATE = 0.0f;
+    public static float PHOTO_SUCCESS_RATE = 0.8f;
 }

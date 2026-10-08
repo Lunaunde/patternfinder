@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://c3sn5sjhu6ouy"]
+
+[ext_resource type="PackedScene" uid="uid://dksn1rksfvp5v" path="res://Scenes/base/puzzle.tscn" id="1_i275m"]
+[ext_resource type="PackedScene" path="res://Scenes/base/puzzle_block.tscn" id="3_hyk3g"]
+[ext_resource type="PackedScene" path="res://Scenes/base/puzzle_base.tscn" id="5_kiupf"]
+[ext_resource type="Texture2D" uid="uid://dyfpx0og443u8" path="res://Assets/Texture/gardern/honeysuckle/零件一副本/未标题-1.png" id="5_nl4pw"]
+[ext_resource type="Texture2D" uid="uid://c6i2q1b8uxj5w" path="res://Assets/Texture/gardern/honeysuckle/零件一副本/f3efc929-f127-4658-a7c4-776762d9e12c.png" id="6_ubj7k"]
+
+[node name="Puzzle" unique_id=1173809317 instance=ExtResource("1_i275m")]
+
+[node name="PuzzleBase" parent="PuzzleBases" parent_id_path=PackedInt32Array(1978903963) index="0" unique_id=1194778897 instance=ExtResource("5_kiupf")]
+position = Vector2(-274, -253)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("6_ubj7k")
+
+[node name="PuzzleBlock" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="0" unique_id=479972363 instance=ExtResource("3_hyk3g")]
+position = Vector2(-406, -263)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("5_nl4pw")
+MaterialId = "honeysuckle-unit"
+
+[node name="PuzzleBlock2" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="1" unique_id=489499904 instance=ExtResource("3_hyk3g")]
+position = Vector2(-193, -263)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("5_nl4pw")
+MaterialId = "honeysuckle-unit"

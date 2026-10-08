@@ -3,6 +3,8 @@ using System;
 
 public partial class PatternObjectArea : Area2D
 {
+	public PatternObject Pattern => GetParent() as PatternObject;
+
 	public float FrameInsideRate(Vector2 framePosition)
 	{
 		Vector2 delta = framePosition - GlobalPosition;

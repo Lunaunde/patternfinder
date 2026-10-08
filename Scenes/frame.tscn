@@ -8,15 +8,20 @@
 size = Vector2(489, 489)
 
 [node name="Frame" type="Node2D" unique_id=231590717]
+visibility_layer = 2
 script = ExtResource("1_klxru")
 
 [node name="Detected" type="Sprite2D" parent="." unique_id=2015036215]
+visibility_layer = 2
 texture = ExtResource("1_jcc0x")
 
 [node name="Undetected" type="Sprite2D" parent="." unique_id=264575407]
+visibility_layer = 2
 texture = ExtResource("2_klxru")
 
 [node name="Area2D" type="Area2D" parent="." unique_id=1328656599]
+visibility_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D" unique_id=1031664710]
+visibility_layer = 2
 shape = SubResource("RectangleShape2D_nfb70")

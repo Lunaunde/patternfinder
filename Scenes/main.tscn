@@ -1,39 +1,99 @@
 [gd_scene format=3 uid="uid://cxnn8r0j40inb"]
 
 [ext_resource type="Script" uid="uid://dxsm8jwauutd0" path="res://Script/Boost/Main.cs" id="1_8gbba"]
-[ext_resource type="PackedScene" uid="uid://d1ry6aaq1jurr" path="res://Scenes/background.tscn" id="2_jjvhh"]
 [ext_resource type="Script" uid="uid://c1id03ken2eig" path="res://Script/UI/DragDetection.cs" id="3_8gbba"]
-[ext_resource type="Texture2D" uid="uid://ds4h80wdyiy1j" path="res://Assets/Texture/gardern/背景/背景副本.png" id="3_kry3j"]
 [ext_resource type="PackedScene" uid="uid://xvslsp7nctaw" path="res://Scenes/frame.tscn" id="4_kry3j"]
-[ext_resource type="PackedScene" uid="uid://cejaybl0427oh" path="res://Scenes/pattern_object.tscn" id="5_21xkr"]
-[ext_resource type="Texture2D" uid="uid://biqsvxuqixdn5" path="res://Assets/Texture/gardern/11.png" id="7_6bp64"]
+[ext_resource type="Script" uid="uid://boucsjuddyoar" path="res://Script/UI/CenteredUI.cs" id="8_layout"]
+[ext_resource type="Texture2D" uid="uid://bq75kyouymc3h" path="res://Assets/Texture/ui/garden_btn_camara@3x.png" id="9_camera"]
+[ext_resource type="Texture2D" uid="uid://chnxvpra0e7b2" path="res://Assets/Texture/ui/garden_btn_note@3x.png" id="10_note"]
+[ext_resource type="PackedScene" path="res://Scenes/levels/honeysuckle.tscn" id="14_level"]
+[ext_resource type="PackedScene" path="res://Scenes/base/notebook.tscn" id="15_notebook"]
 
 [node name="Main" type="Node" unique_id=1917081249]
 script = ExtResource("1_8gbba")
-BackgroundScene = ExtResource("2_jjvhh")
-BackgroundTexture = ExtResource("3_kry3j")
+LevelScene = ExtResource("14_level")
+NotebookScene = ExtResource("15_notebook")
 FarmeScene = ExtResource("4_kry3j")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=797673503]
 
 [node name="UILayer" type="CanvasLayer" parent="." unique_id=765157632]
 
-[node name="DragDetection" type="Control" parent="UILayer" unique_id=1519289878]
+[node name="ScreenShade" type="ColorRect" parent="UILayer" unique_id=235147514]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
+
+[node name="InputBlocker" type="Control" parent="UILayer" unique_id=484857214]
+visible = false
 layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="UILayer" unique_id=604796306]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+ratio = 2.25
+
+[node name="UIRoot" type="Control" parent="UILayer/AspectRatioContainer" unique_id=1884680699]
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("8_layout")
+
+[node name="DesignRoot" type="Control" parent="UILayer/AspectRatioContainer/UIRoot" unique_id=154736130]
+anchors_preset = 0
+offset_right = 2430.0
+offset_bottom = 1080.0
+mouse_filter = 2
+
+[node name="DragDetection" type="Control" parent="UILayer/AspectRatioContainer/UIRoot/DesignRoot" unique_id=1519289878]
 anchors_preset = 0
 offset_right = 2430.0
 offset_bottom = 1080.0
 script = ExtResource("3_8gbba")
 
-[node name="VirtualJoystick" type="VirtualJoystick" parent="UILayer" unique_id=1518827382]
-offset_left = 300.0
-offset_top = 800.0
-offset_right = 340.0
-offset_bottom = 840.0
-joystick_size = 400.0
-tip_size = 200.0
+[node name="VirtualJoystick" type="VirtualJoystick" parent="UILayer/AspectRatioContainer/UIRoot/DesignRoot" unique_id=1518827382]
+layout_mode = 0
+offset_left = 110.0
+offset_top = 730.0
+offset_right = 437.0
+offset_bottom = 1057.0
+tooltip_text = "按住取景并移动；键盘可按住空格，方向键移动，Enter 拍照"
+joystick_size = 327.0
+tip_size = 159.0
 
-[node name="PatternObject" parent="." unique_id=1319498223 instance=ExtResource("5_21xkr")]
-position = Vector2(-780.5, -169.75)
-scale = Vector2(0.23974611, 0.2097168)
-texture = ExtResource("7_6bp64")
+[node name="PhotoButton" type="TextureButton" parent="UILayer/AspectRatioContainer/UIRoot/DesignRoot" unique_id=1683645473]
+layout_mode = 0
+offset_left = 2085.0
+offset_top = 725.0
+offset_right = 2349.0
+offset_bottom = 989.0
+tooltip_text = "拍照（Enter）"
+focus_mode = 0
+texture_normal = ExtResource("9_camera")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="NoteIcon" type="TextureButton" parent="UILayer/AspectRatioContainer/UIRoot/DesignRoot" unique_id=1711419217]
+layout_mode = 0
+offset_left = 2085.0
+offset_top = 375.0
+offset_right = 2346.0
+offset_bottom = 705.0
+tooltip_text = "打开拼接笔记本"
+focus_mode = 0
+texture_normal = ExtResource("10_note")
+ignore_texture_size = true
+stretch_mode = 5
