@@ -1,8 +1,9 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
-/// <summary>Exercises authored target coordinates, local/ shared tolerances, and exact material ID matching.</summary>
+/// <summary>Exercises authored matching, locked pieces, and level-owned completion displays.</summary>
 public partial class PuzzleMatchTest : Node
 {
     private readonly List<Puzzle> _fixtures = new();
@@ -17,6 +18,7 @@ public partial class PuzzleMatchTest : Node
             CheckDuplicateTargetsAndInvalidValues();
             CheckSceneTemplates();
             CheckBaseCopies();
+            CheckCompletionAndLockedPieces();
             GD.Print($"Puzzle matching: {_checks} checks passed.");
             GetTree().Quit();
         }
@@ -161,6 +163,8 @@ public partial class PuzzleMatchTest : Node
         empty.RefreshTargets();
         Check(empty.Targets.Count == 0 && empty.HasNode("PuzzleBases") && empty.HasNode("PuzzleBlocks"),
             "The base Puzzle template contains visual and target containers without level-specific content.");
+        Check(empty.PuzzleFinish != null && !empty.PuzzleFinish.Visible && !empty.IsFinished,
+            "The base Puzzle template includes an initially hidden completion Control.");
         var preview = empty.GetNode<EditorOnlyPreview>("NotebookPreview");
         Texture2D previewTexture = preview.Texture;
         Check(preview.Visible && GodotObject.IsInstanceValid(previewTexture)
@@ -309,6 +313,154 @@ public partial class PuzzleMatchTest : Node
             legacyLevel.Free();
             level.Free();
         }
+    }
+
+    private void CheckCompletionAndLockedPieces()
+    {
+        Image image = Image.CreateEmpty(16, 16, false, Image.Format.Rgba8);
+        image.Fill(Colors.Wheat);
+        Texture2D texture = ImageTexture.CreateFromImage(image);
+        var firstPosition = new Vector2(-120, 0);
+        var secondPosition = new Vector2(120, 0);
+        Level level = CompletionLevel("CompletionLevel", texture, firstPosition, secondPosition);
+        Level other = CompletionLevel("OtherCompletionLevel", texture, Vector2.Zero);
+        Level empty = CompletionLevel("EmptyCompletionLevel", texture);
+        var board = new PuzzleBoard { Name = "CompletionBoard", Size = new Vector2(1320, 1028), PuzzleScale = 1 };
+        try
+        {
+            AddChild(level);
+            AddChild(other);
+            AddChild(empty);
+            AddChild(board);
+            MaterialEntry material = CollectCompletionMaterial(level);
+            MaterialEntry otherMaterial = CollectCompletionMaterial(other);
+            MaterialEntry emptyMaterial = CollectCompletionMaterial(empty);
+
+            board.BindLevel(level);
+            Control authored = level.Puzzle.PuzzleFinish;
+            Control display = board.GetNode<Control>("PuzzleContent/LevelPage_0/PuzzleFinish");
+            Check(board.TargetCount == 2 && board.MatchedCount == 0 && !board.IsFinished && !level.Puzzle.IsFinished
+                && !authored.Visible && !display.Visible,
+                "A page with unfilled targets starts unfinished with both completion displays hidden.");
+            Check(!ReferenceEquals(authored, display) && display.Position == authored.Position && display.Size == authored.Size
+                && display.Scale == authored.Scale && display.PivotOffset == authored.PivotOffset
+                && Math.Abs(display.Rotation - authored.Rotation) < 0.001f,
+                "The notebook completion display is an independent copy retaining its authored Control layout.");
+            Control authoredContent = authored.GetNode<Control>("Content");
+            Control copiedContent = display.GetNode<Control>("Content");
+            ColorRect authoredBadge = authoredContent.GetNode<ColorRect>("Badge");
+            ColorRect copiedBadge = copiedContent.GetNode<ColorRect>("Badge");
+            Check(!ReferenceEquals(authoredContent, copiedContent) && copiedContent.Position == authoredContent.Position
+                && copiedContent.Size == authoredContent.Size && copiedContent.Scale == authoredContent.Scale
+                && copiedBadge.Position == authoredBadge.Position && copiedBadge.Size == authoredBadge.Size
+                && copiedBadge.Color == authoredBadge.Color && !display.GetNode<Control>("HiddenDecoration").Visible,
+                "Completion artwork copies its nested Control hierarchy, local proportions, color, and explicit hidden children.");
+
+            Check(board.TryPlaceMaterial(level, material, board.PuzzleToCanvas(firstPosition), out PuzzlePiece first)
+                && first.IsMatched && board.SelectedPiece == null && board.MatchedCount == 1,
+                "Matching a piece locks it and clears the selection immediately.");
+            Check(!board.IsFinished && !level.Puzzle.IsFinished && !authored.Visible && !display.Visible,
+                "Filling only one of two targets keeps the completion display hidden.");
+            Vector2 press = board.GetGlobalTransformWithCanvas().AffineInverse() * board.PuzzleToCanvas(first.Position);
+            board.EmitSignal(Control.SignalName.GuiInput,
+                new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = true, Position = press });
+            Check(!board.IsPieceDragging && board.SelectedPiece == null && !board.DeleteSelected(),
+                "Clicking a matched piece cannot select, drag, or delete it.");
+            Vector2 destination = board.PuzzleToCanvas(secondPosition);
+            board._Input(new InputEventMouseMotion { Position = destination });
+            board._Input(new InputEventMouseButton { ButtonIndex = MouseButton.Left, Pressed = false, Position = destination });
+            Check(first.Position == firstPosition && first.MatchedTarget == level.Puzzle.Targets[0] && board.MatchedCount == 1,
+                "Pointer motion and release leave a locked piece on its original target.");
+
+            Check(board.TryPlaceMaterial(level, material, board.PuzzleToCanvas(firstPosition), out PuzzlePiece duplicate)
+                && !duplicate.IsMatched && board.MatchedCount == 1 && !board.IsFinished,
+                "A second copy with the same ID cannot claim an occupied target or complete another target.");
+            Check(board.DeleteSelected() && board.Pieces.Count == 1 && first.IsMatched && !board.IsFinished,
+                "An unmatched duplicate can be deleted while the locked match remains in place.");
+            Check(board.TryPlaceMaterial(level, material, board.PuzzleToCanvas(secondPosition), out PuzzlePiece second)
+                && second.IsMatched && second.MatchedTarget != first.MatchedTarget && board.SelectedPiece == null,
+                "Repeated material IDs fill separate target instances and lock each successful placement.");
+            Check(board.IsFinished && level.Puzzle.IsFinished && board.MatchedCount == board.TargetCount
+                && authored.Visible && display.Visible && display.IsVisibleInTree() && !authored.IsVisibleInTree(),
+                "Filling every target shows the notebook completion copy while the source Puzzle remains hidden in the garden.");
+            Check(!board.DeleteSelected() && board.Pieces.Count == 2 && !display.GetNode<Control>("HiddenDecoration").Visible,
+                "Completed pieces cannot be deleted and showing completion preserves explicitly hidden artwork children.");
+            Check(board.TryPlaceMaterial(level, material, board.PuzzleToCanvas(new Vector2(0, 180)), out PuzzlePiece loose)
+                && !loose.IsMatched && board.SelectedPiece == loose && board.IsFinished,
+                "A completed page may still contain an editable unmatched piece without losing completion.");
+            Check(board.DeleteSelected() && board.Pieces.Count == 2 && board.IsFinished && level.Puzzle.IsFinished && display.Visible,
+                "Deleting an unmatched piece does not hide completion or release any matched target.");
+
+            board.BindLevel(other);
+            Control otherDisplay = board.GetNode<Control>("PuzzleContent/LevelPage_1/PuzzleFinish");
+            Check(!board.IsFinished && !other.Puzzle.IsFinished && !otherDisplay.Visible && !display.IsVisibleInTree()
+                && level.Puzzle.IsFinished && board.Pieces.Count == 0,
+                "Another Level with the same material ID owns an independent unfinished page and completion display.");
+            Check(board.TryPlaceMaterial(other, otherMaterial, board.PuzzleToCanvas(Vector2.Zero), out PuzzlePiece otherPiece)
+                && otherPiece.IsMatched && board.IsFinished && other.Puzzle.IsFinished && otherDisplay.IsVisibleInTree(),
+                "The second Level completes from its own inventory entry and target only.");
+            board.BindLevel(level);
+            Check(board.IsFinished && board.Pieces.Count == 2 && display.IsVisibleInTree() && !otherDisplay.IsVisibleInTree()
+                && board.GetNode<Control>("PuzzleContent/LevelPage_0/PuzzleFinish") == display
+                && first.IsMatched && second.IsMatched,
+                "Rebinding restores the original completed page, locked pieces, and existing completion copy.");
+
+            board.BindLevel(empty);
+            Control emptyDisplay = board.GetNode<Control>("PuzzleContent/LevelPage_2/PuzzleFinish");
+            Check(board.TargetCount == 0 && !board.IsFinished && !empty.Puzzle.IsFinished && !emptyDisplay.Visible,
+                "An empty target set does not count as a completed puzzle.");
+            Check(board.TryPlaceMaterial(empty, emptyMaterial, board.PuzzleToCanvas(Vector2.Zero), out PuzzlePiece emptyLoose)
+                && !emptyLoose.IsMatched && board.DeleteSelected() && !board.IsFinished && !emptyDisplay.Visible,
+                "Creating and deleting loose pieces on an empty puzzle never reveals completion.");
+            board.BindLevel(other);
+            Check(board.IsFinished && board.Pieces.Count == 1 && otherPiece.IsMatched && otherDisplay.IsVisibleInTree(),
+                "The second Level also retains its completed state after visiting an empty page.");
+        }
+        finally
+        {
+            board.Free();
+            empty.Free();
+            other.Free();
+            level.Free();
+        }
+    }
+
+    private static Level CompletionLevel(string name, Texture2D texture, params Vector2[] targetPositions)
+    {
+        var level = new Level { Name = name };
+        var patterns = new Node2D { Name = "Patterns" };
+        level.AddChild(patterns);
+        var pattern = new PatternObject { Name = "Pattern" };
+        pattern.Variants.Add(new PatternVariant { MaterialId = "completion-unit", MaterialName = "Completion material", MaterialTexture = texture });
+        patterns.AddChild(pattern);
+        var puzzle = new Puzzle
+        {
+            Name = "Puzzle", Position = new Vector2(450, 220), Rotation = 0.8f, Scale = Vector2.One * 1.5f,
+            Definition = new PuzzleDefinition { PositionTolerance = 10, AngleToleranceDegrees = 15 }
+        };
+        puzzle.AddChild(new Node2D { Name = "PuzzleBlocks" });
+        level.AddChild(puzzle);
+        foreach (Vector2 position in targetPositions)
+            AddTarget(puzzle, "completion-unit", position).Texture = texture;
+        var finish = new Control
+        {
+            Name = "PuzzleFinish", Visible = false, Position = new Vector2(-75, -95), Size = new Vector2(150, 90),
+            Scale = new Vector2(1.25f, 0.8f), Rotation = 0.12f, PivotOffset = new Vector2(11, 8)
+        };
+        puzzle.AddChild(finish);
+        var content = new Control { Name = "Content", Position = new Vector2(6, 9), Size = new Vector2(100, 40), Scale = new Vector2(0.9f, 1.1f) };
+        finish.AddChild(content);
+        content.AddChild(new ColorRect { Name = "Badge", Position = new Vector2(7, 4), Size = new Vector2(20, 12), Color = Colors.Gold });
+        finish.AddChild(new Control { Name = "HiddenDecoration", Visible = false, Size = new Vector2(10, 10) });
+        return level;
+    }
+
+    private MaterialEntry CollectCompletionMaterial(Level level)
+    {
+        Check(level.TryResolveMaterial("completion-unit", out MaterialEntry material)
+            && level.Inventory.TryAdd(material.MaterialId, material.DisplayName, material.Texture, material.Scale),
+            "The completion fixture collects its own valid Level-local material.");
+        return level.Inventory.Entries[0];
     }
 
     private static bool SameTransform(Transform2D actual, Transform2D expected) =>

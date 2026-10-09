@@ -24,3 +24,8 @@ script = ExtResource("4_preview")
 [node name="PuzzleBases" type="Node2D" parent="." unique_id=1978903963]
 
 [node name="PuzzleBlocks" type="Node2D" parent="." unique_id=661982213]
+
+[node name="PuzzleFinish" type="Control" parent="." unique_id=1731224524]
+visible = false
+layout_mode = 3
+anchors_preset = 0

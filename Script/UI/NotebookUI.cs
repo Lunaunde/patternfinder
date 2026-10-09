@@ -127,7 +127,8 @@ public partial class NotebookUI : Control
         _deleteZone.Modulate = hovered ? new Color(1, 0.8f, 0.82f) : Colors.White;
     }
 
-    private void UpdateSelection() => _deleteButton.Disabled = Board.SelectedPiece == null || Board.IsPieceDragging;
+    private void UpdateSelection() => _deleteButton.Disabled = Board.SelectedPiece == null
+        || Board.SelectedPiece.IsMatched || Board.IsPieceDragging;
 
     private static StyleBoxFlat RoundedPanel(Color color, int radius) => new()
     {

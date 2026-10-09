@@ -12,18 +12,17 @@ config_version=5
 
 config/name="patternfinder"
 run/main_scene="uid://cxnn8r0j40inb"
-run/max_fps=60
 config/features=PackedStringArray("4.7", "C#", "Mobile")
+run/max_fps=60
 config/icon="res://icon.svg"
 
 [display]
 
 window/size/viewport_width=2430
 window/size/viewport_height=1080
+window/frame_pacing/android/swappy_mode=0
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-window/frame_pacing/android/enable_frame_pacing=true
-window/frame_pacing/android/swappy_mode=0
 
 [dotnet]
 

@@ -10,6 +10,7 @@ public partial class PuzzleBoard : Control
     {
         public Node2D Root;
         public Node2D PiecesRoot;
+        public Control Finish;
         public readonly List<PuzzlePiece> Pieces = new();
     }
 
@@ -20,6 +21,8 @@ public partial class PuzzleBoard : Control
     public bool IsPieceDragging => _dragged != null;
     public int MatchedCount => _page?.Pieces.Count(piece => piece.IsMatched) ?? 0;
     public int TargetCount => CurrentLevel?.Puzzle?.Targets.Count ?? 0;
+    public bool IsFinished => _page != null && TargetCount > 0
+        && CurrentLevel.Puzzle.Targets.All(target => _page.Pieces.Any(piece => piece.MatchedTarget == target));
     public Func<Vector2, bool> DeleteDropTarget { get; set; }
     public event Action Changed;
     public event Action<bool> DeleteHoverChanged;
@@ -33,7 +36,6 @@ public partial class PuzzleBoard : Control
     private Vector2 _grabOffset;
     private Vector2 _originalPosition;
     private float _originalRotation;
-    private PuzzleBlock _originalTarget;
     private Transform2D _gestureTransform;
 
     public override void _Ready()
@@ -83,11 +85,17 @@ public partial class PuzzleBoard : Control
                 BuildBase(level.Puzzle, _page.Root);
                 _page.PiecesRoot = new Node2D { Name = "Pieces" };
                 _page.Root.AddChild(_page.PiecesRoot);
+                if (level.Puzzle?.PuzzleFinish != null)
+                {
+                    _page.Finish = (Control)level.Puzzle.PuzzleFinish.Duplicate();
+                    _page.Finish.Hide();
+                    _page.Root.AddChild(_page.Finish);
+                }
                 _pages.Add(level, _page);
             }
             _page.Root.Show();
         }
-        Changed?.Invoke();
+        NotifyChanged();
     }
 
     private static Transform2D TargetTransform(Puzzle puzzle, Node2D target)
@@ -178,12 +186,14 @@ public partial class PuzzleBoard : Control
         _page.Pieces.Add(piece);
         Select(piece);
         MatchPiece(piece);
-        Changed?.Invoke();
+        NotifyChanged();
         return true;
     }
 
     private void Select(PuzzlePiece piece)
     {
+        if (piece?.IsMatched == true)
+            piece = null;
         SelectedPiece?.SetSelected(false);
         SelectedPiece = piece;
         piece?.SetSelected(true);
@@ -207,7 +217,8 @@ public partial class PuzzleBoard : Control
 
     private void BeginDrag(int pointer, Vector2 canvasPosition)
     {
-        PuzzlePiece piece = _page?.Pieces.LastOrDefault(candidate => candidate.ContainsCanvasPoint(canvasPosition));
+        PuzzlePiece piece = _page?.Pieces.LastOrDefault(candidate => !candidate.IsMatched
+            && candidate.ContainsCanvasPoint(canvasPosition));
         Select(piece);
         if (piece != null)
         {
@@ -217,15 +228,12 @@ public partial class PuzzleBoard : Control
             _grabOffset = piece.Position - CanvasToPuzzle(canvasPosition);
             _originalPosition = piece.Position;
             _originalRotation = piece.Rotation;
-            _originalTarget = piece.MatchedTarget;
-            piece.MatchedTarget = null;
-            piece.QueueRedraw();
             _page.Pieces.Remove(piece);
             _page.Pieces.Add(piece);
             _page.PiecesRoot.MoveChild(piece, -1);
             piece.ZIndex = 20;
         }
-        Changed?.Invoke();
+        NotifyChanged();
     }
 
     public override void _Input(InputEvent input)
@@ -286,14 +294,15 @@ public partial class PuzzleBoard : Control
         {
             MatchPiece(piece);
             ClearDrag();
-            Changed?.Invoke();
+            NotifyChanged();
         }
         else CancelDrag();
     }
 
     private void MatchPiece(PuzzlePiece piece)
     {
-        piece.MatchedTarget = null;
+        if (piece.IsMatched)
+            return;
         if (ReferenceEquals(piece.SourceLevel, CurrentLevel) && CurrentLevel.Puzzle != null
             && CurrentLevel.Puzzle.TryFindMatch(piece.MaterialId, piece.Position, piece.Rotation,
                 out PuzzleBlock target, candidate => !_page.Pieces.Any(other => other != piece && other.MatchedTarget == candidate)))
@@ -303,6 +312,8 @@ public partial class PuzzleBoard : Control
             piece.Rotation = rotation;
             piece.ApplyTargetArtwork(target, TargetTransform(CurrentLevel.Puzzle, target).Scale);
             piece.MatchedTarget = target;
+            if (SelectedPiece == piece)
+                Select(null);
         }
         piece.QueueRedraw();
     }
@@ -313,10 +324,9 @@ public partial class PuzzleBoard : Control
             return;
         _dragged.Position = _originalPosition;
         _dragged.Rotation = _originalRotation;
-        _dragged.MatchedTarget = _originalTarget;
         _dragged.QueueRedraw();
         ClearDrag();
-        Changed?.Invoke();
+        NotifyChanged();
     }
 
     private void ClearDrag()
@@ -330,7 +340,7 @@ public partial class PuzzleBoard : Control
 
     public bool DeleteSelected()
     {
-        if (_dragged != null || SelectedPiece == null)
+        if (_dragged != null || SelectedPiece == null || SelectedPiece.IsMatched)
             return false;
         RemovePiece(SelectedPiece);
         return true;
@@ -338,11 +348,22 @@ public partial class PuzzleBoard : Control
 
     private void RemovePiece(PuzzlePiece piece)
     {
+        if (piece.IsMatched)
+            return;
         if (piece == SelectedPiece)
             Select(null);
         _page.Pieces.Remove(piece);
         piece.Hide();
         piece.QueueFree();
+        NotifyChanged();
+    }
+
+    private void NotifyChanged()
+    {
+        bool finished = IsFinished;
+        CurrentLevel?.Puzzle?.SetFinished(finished);
+        if (_page?.Finish != null)
+            _page.Finish.Visible = finished;
         Changed?.Invoke();
     }
 }

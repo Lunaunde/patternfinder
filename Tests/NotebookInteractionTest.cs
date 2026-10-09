@@ -60,6 +60,7 @@ public partial class NotebookInteractionTest : Node
             await CheckTouchAndCancellation();
             await CheckLevelScope();
             await CheckResizing();
+            await CheckMatchingLockAndCompletion();
             await Screenshot("chatgpt-notebook-honeysuckle");
             _finished = true;
             GD.Print($"Notebook interaction: {_checks} checks passed.");
@@ -221,9 +222,8 @@ public partial class NotebookInteractionTest : Node
 
     private async Task CheckMatchingAndDeletion()
     {
-        _stage = "piece editing and target matching";
+        _stage = "loose piece editing and deletion";
         PuzzlePiece piece = _board.Pieces[0];
-        PuzzleBlock right = _main.CurrentLevel.Puzzle.Targets.First(target => target.MaterialId == piece.MaterialId);
         Node blocks = _main.CurrentLevel.Puzzle.GetNode("PuzzleBlocks");
         var wrong = new PuzzleBlock
         {
@@ -243,18 +243,6 @@ public partial class NotebookInteractionTest : Node
             wrong.Free();
             _main.CurrentLevel.Puzzle.RefreshTargets();
         }
-        _main.CurrentLevel.Puzzle.TryGetTargetPose(right, out Vector2 rightPosition, out _);
-        await DragPiece(piece, rightPosition + new Vector2(4, 0));
-        Check(piece.MatchedTarget == right && piece.Position.DistanceTo(rightPosition) < 0.001f,
-            "Correct Level-local MaterialId and tolerances match and align the piece to its authored target.");
-        CheckPieceVisible(piece);
-        Check(!right.IsVisibleInTree(), "A successful match does not reveal its authored target in the garden or notebook.");
-        Check(_board.MatchedCount == 1, "Matching updates notebook progress.");
-        Check(_board.TryPlaceMaterial(_main.CurrentLevel, _entry, _board.PuzzleToCanvas(rightPosition), out PuzzlePiece extra)
-            && !extra.IsMatched, "An occupied target cannot be claimed by a second piece.");
-        Check(_board.DeleteSelected() && _board.Pieces.Count == 2, "Deleting a duplicate leaves the original match intact.");
-        await DragPiece(piece, new Vector2(340, -210));
-        Check(!piece.IsMatched && _board.MatchedCount == 0, "Matched pieces remain movable as requested, freeing their target.");
         await Down(_board.PuzzleToCanvas(piece.Position));
         await Move(DeletePoint());
         Control deleteZone = _main.Notebook.GetNode<Control>("PieceDeleteZone");
@@ -288,6 +276,129 @@ public partial class NotebookInteractionTest : Node
         await Down(deleteButtonPoint); await Up(deleteButtonPoint);
         Check(_board.Pieces.Count == 0 && _main.Inventory.Contains(_entry.MaterialId),
             "The actual deletion icon removes only the selected piece while retaining its material card.");
+    }
+
+    private async Task CheckMatchingLockAndCompletion()
+    {
+        _stage = "matching locks and puzzle completion";
+        // Matching is deliberately last: the earlier gesture and resize cases need editable pieces.
+        foreach (PuzzlePiece loose in _board.Pieces.ToArray())
+        {
+            Check(!loose.IsMatched, "The gesture fixtures leave only loose pieces before completion testing.");
+            Vector2 point = _board.PuzzleToCanvas(loose.Position);
+            await Down(point); await Up(point);
+            await PressDeletionKey(Key.Delete);
+        }
+        Check(_board.Pieces.Count == 0, "Native Delete clears the loose gesture fixtures without consuming inventory.");
+
+        Puzzle puzzle = _main.CurrentLevel.Puzzle;
+        Node2D page = ActivePage();
+        Control finish = page.GetNode<Control>("PuzzleFinish");
+        Check(puzzle.PuzzleFinish != null && !ReferenceEquals(puzzle.PuzzleFinish, finish)
+            && !finish.Visible && !finish.IsVisibleInTree() && !puzzle.IsFinished && !_board.IsFinished,
+            "Every notebook page has its own hidden PuzzleFinish display and starts unfinished.");
+
+        PuzzleBlock first = puzzle.Targets.First(target => target.MaterialId == _entry.MaterialId);
+        puzzle.TryGetTargetPose(first, out Vector2 targetPosition, out float targetRotation);
+        await BeginCard(_entry.MaterialId);
+        Vector2 release = _board.PuzzleToCanvas(targetPosition + new Vector2(4, 0));
+        await Move(release); await Up(release);
+        PuzzlePiece locked = _board.Pieces.Single();
+        Check(locked.MatchedTarget == first && locked.Position.DistanceTo(targetPosition) < 0.001f
+            && Math.Abs(locked.Rotation - targetRotation) < 0.001f,
+            "A valid native card drop snaps to the Level-local authored target.");
+        CheckPieceVisible(locked);
+        Check(!first.IsVisibleInTree(), "Matching preserves the hidden authored target while its player artwork remains visible.");
+        Check(_board.MatchedCount == 1 && _board.SelectedPiece == null,
+            "A correctly placed piece locks immediately and cannot remain selected for deletion.");
+        if (_board.TargetCount > 1)
+            Check(!finish.Visible && !puzzle.IsFinished && !_board.IsFinished,
+                "PuzzleFinish stays hidden when at least one target remains unfilled.");
+
+        Vector2 lockedPosition = locked.Position;
+        float lockedRotation = locked.Rotation;
+        Vector2 lockedPoint = _board.PuzzleToCanvas(lockedPosition);
+        await Down(lockedPoint);
+        Check(!_board.IsPieceDragging && _board.SelectedPiece == null,
+            "Pressing a matched piece with the mouse cannot begin a drag or select it.");
+        await Move(_board.PuzzleToCanvas(new Vector2(340, -210)));
+        await Up(_board.PuzzleToCanvas(new Vector2(340, -210)));
+        Check(locked.Position == lockedPosition && locked.Rotation == lockedRotation
+            && locked.MatchedTarget == first && _board.MatchedCount == 1,
+            "Mouse movement cannot move, rotate, or release a locked target.");
+
+        foreach (Key key in new[] { Key.Delete, Key.Backspace })
+        {
+            await Down(lockedPoint); await Up(lockedPoint);
+            await PressDeletionKey(key);
+            Check(_board.Pieces.Count == 1 && locked.MatchedTarget == first,
+                $"{key} cannot delete a correctly placed piece.");
+        }
+        Check(!_board.DeleteSelected(), "The selected-piece deletion API also refuses a locked piece.");
+
+        await Down(lockedPoint); await Move(DeletePoint()); await Up(DeletePoint());
+        Check(_board.Pieces.Count == 1 && locked.Position == lockedPosition
+            && locked.MatchedTarget == first && !_main.Notebook.IsDeleteHovered,
+            "Dragging a locked piece toward the trash leaves both its pose and target occupancy intact.");
+        Button deleteSelected = _main.Notebook.GetNode<Button>("PieceDeleteZone/DeleteSelectionButton");
+        Check(deleteSelected.Disabled, "The trash action is disabled after pressing a locked piece.");
+        Vector2 deleteButtonPoint = deleteSelected.GetGlobalTransformWithCanvas() * (deleteSelected.Size / 2);
+        await Down(deleteButtonPoint); await Up(deleteButtonPoint);
+        Check(_board.Pieces.Count == 1 && locked.MatchedTarget == first,
+            "The actual trash button cannot delete the locked piece.");
+
+        Touch(11, lockedPoint, true); await Frames(2);
+        Check(!_board.IsPieceDragging && _board.SelectedPiece == null,
+            "A touch press cannot start moving or selecting a locked piece.");
+        TouchMove(11, lockedPoint, DeletePoint()); await Frames(2);
+        Touch(11, DeletePoint(), false); await Frames(2);
+        Check(_board.Pieces.Count == 1 && locked.Position == lockedPosition
+            && locked.Rotation == lockedRotation && locked.MatchedTarget == first && !_main.Notebook.IsDeleteHovered,
+            "Touch movement and release cannot move or discard the correctly placed piece.");
+
+        await BeginCard(_entry.MaterialId);
+        release = _board.PuzzleToCanvas(targetPosition);
+        await Move(release); await Up(release);
+        PuzzlePiece duplicate = _board.Pieces.Single(piece => piece != locked);
+        Check(!duplicate.IsMatched && locked.MatchedTarget == first && _board.MatchedCount == 1,
+            "A second copy cannot claim the target that its locked piece permanently occupies.");
+        await PressDeletionKey(Key.Backspace);
+        Check(_board.Pieces.Count == 1 && locked.MatchedTarget == first && _main.Inventory.Contains(_entry.MaterialId),
+            "Backspace still deletes a selected loose duplicate without disturbing the locked piece or inventory.");
+
+        foreach (PuzzleBlock target in puzzle.Targets.Where(target => target != first))
+        {
+            MaterialEntry entry = _main.Inventory.Entries.Single(material => material.MaterialId == target.MaterialId);
+            puzzle.TryGetTargetPose(target, out Vector2 position, out _);
+            await BeginCard(entry.MaterialId);
+            release = _board.PuzzleToCanvas(position);
+            await Move(release); await Up(release);
+            Check(_board.Pieces.Any(piece => piece.MatchedTarget == target),
+                "Each remaining authored target is filled through the real material-card drag flow.");
+            bool complete = _board.MatchedCount == _board.TargetCount;
+            Check(finish.Visible == complete && puzzle.IsFinished == complete && _board.IsFinished == complete,
+                "PuzzleFinish becomes visible exactly when every authored target is occupied.");
+        }
+        Check(_board.IsFinished && puzzle.IsFinished && finish.Visible && finish.IsVisibleInTree()
+            && _board.MatchedCount == _board.TargetCount,
+            "The completed notebook displays its PuzzleFinish Control above the completed page.");
+        PuzzlePiece[] completedPieces = _board.Pieces.ToArray();
+        await CloseWithButton();
+        Check(!finish.IsVisibleInTree() && !puzzle.PuzzleFinish.IsVisibleInTree(),
+            "The finish display follows notebook visibility and does not appear over the garden.");
+        Check(_main.OpenNotebook(), "A completed notebook can be reopened.");
+        await Frames(2);
+        Check(_board.IsFinished && finish.IsVisibleInTree() && _board.Pieces.SequenceEqual(completedPieces)
+            && _board.Pieces.All(piece => piece.IsMatched),
+            "Closing and reopening preserves the completed display, locked pieces, and target occupancy.");
+
+        Level other = GetChildren().OfType<Level>().Single();
+        _board.BindLevel(other);
+        Check(!_board.IsFinished && !other.Puzzle.IsFinished && !ActivePage().GetNode<Control>("PuzzleFinish").Visible,
+            "Completion of the original Level does not reveal another Level's unfinished PuzzleFinish.");
+        _board.BindLevel(_main.CurrentLevel);
+        Check(_board.IsFinished && finish.IsVisibleInTree() && _board.Pieces.SequenceEqual(completedPieces),
+            "Returning from another Level restores the original page's completion and fixed pieces.");
     }
 
     private async Task CheckTouchAndCancellation()
@@ -546,6 +657,14 @@ public partial class NotebookInteractionTest : Node
         .GetChildren().OfType<MaterialCard>().Single(card => card.Entry?.MaterialId == id);
     private Vector2 CardPoint(string id) { MaterialCard card = Card(id); return card.GetGlobalTransformWithCanvas() * (card.Size / 2); }
     private Vector2 DeletePoint() { Control zone = _main.Notebook.GetNode<Control>("PieceDeleteZone"); return zone.GetGlobalTransformWithCanvas() * (zone.Size / 2); }
+    private Node2D ActivePage() => _board.GetNode<Node2D>("PuzzleContent").GetChildren().OfType<Node2D>().Single(page => page.Visible);
+    private async Task PressDeletionKey(Key key)
+    {
+        GetViewport().PushInput(new InputEventKey { PhysicalKeycode = key, Pressed = true }, true);
+        await Frames(2);
+        GetViewport().PushInput(new InputEventKey { PhysicalKeycode = key, Pressed = false }, true);
+        await Frames(1);
+    }
     private async Task BeginCard(string id) { await Down(CardPoint(id)); await Until(() => _bar.IsCardDragging, "The native GUI route starts a held card drag."); }
     private async Task DragPiece(PuzzlePiece piece, Vector2 to) { await Down(_board.PuzzleToCanvas(piece.Position)); await Move(_board.PuzzleToCanvas(to)); await Up(_board.PuzzleToCanvas(to)); }
     private async Task Down(Vector2 point)

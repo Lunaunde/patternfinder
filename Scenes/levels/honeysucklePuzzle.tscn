@@ -1,26 +1,77 @@
-[gd_scene format=3 uid="uid://c3sn5sjhu6ouy"]
+[gd_scene format=3 uid="uid://bo8lr20h04oxt"]
 
-[ext_resource type="PackedScene" uid="uid://dksn1rksfvp5v" path="res://Scenes/base/puzzle.tscn" id="1_i275m"]
-[ext_resource type="PackedScene" path="res://Scenes/base/puzzle_block.tscn" id="3_hyk3g"]
-[ext_resource type="PackedScene" path="res://Scenes/base/puzzle_base.tscn" id="5_kiupf"]
-[ext_resource type="Texture2D" uid="uid://dyfpx0og443u8" path="res://Assets/Texture/gardern/honeysuckle/零件一副本/未标题-1.png" id="5_nl4pw"]
-[ext_resource type="Texture2D" uid="uid://c6i2q1b8uxj5w" path="res://Assets/Texture/gardern/honeysuckle/零件一副本/f3efc929-f127-4658-a7c4-776762d9e12c.png" id="6_ubj7k"]
+[ext_resource type="PackedScene" uid="uid://dksn1rksfvp5v" path="res://Scenes/base/puzzle.tscn" id="1_s1lb7"]
+[ext_resource type="PackedScene" path="res://Scenes/base/puzzle_base.tscn" id="2_jr8y4"]
+[ext_resource type="Texture2D" uid="uid://bmm8a7ug2qnhq" path="res://Assets/Texture/gardern/honeysuckle/零件2副本/3.png" id="3_6oxh3"]
+[ext_resource type="Texture2D" uid="uid://ouux2npf1h40" path="res://Assets/Texture/gardern/honeysuckle/零件3副本/2.png" id="4_1ocrl"]
+[ext_resource type="Texture2D" uid="uid://c6i2q1b8uxj5w" path="res://Assets/Texture/gardern/honeysuckle/零件一副本/f3efc929-f127-4658-a7c4-776762d9e12c.png" id="5_v1va1"]
+[ext_resource type="PackedScene" path="res://Scenes/base/puzzle_block.tscn" id="6_sel6i"]
+[ext_resource type="Texture2D" uid="uid://dyfpx0og443u8" path="res://Assets/Texture/gardern/honeysuckle/零件一副本/未标题-1.png" id="7_4r1um"]
+[ext_resource type="Texture2D" uid="uid://ukriojr2d7gh" path="res://Assets/Texture/gardern/honeysuckle/零件2副本/零件3.png" id="8_qffn1"]
+[ext_resource type="Texture2D" uid="uid://dnwih41hsgaqb" path="res://Assets/Texture/gardern/honeysuckle/零件3副本/零件.png" id="9_4b2mo"]
 
-[node name="Puzzle" unique_id=1173809317 instance=ExtResource("1_i275m")]
+[node name="honeysucklePuzzle" unique_id=1173809317 instance=ExtResource("1_s1lb7")]
 
-[node name="PuzzleBase" parent="PuzzleBases" parent_id_path=PackedInt32Array(1978903963) index="0" unique_id=1194778897 instance=ExtResource("5_kiupf")]
-position = Vector2(-274, -253)
+[node name="PuzzleBase" parent="PuzzleBases" parent_id_path=PackedInt32Array(1978903963) index="0" unique_id=835289611 instance=ExtResource("2_jr8y4")]
+position = Vector2(-293, 242)
 scale = Vector2(0.25, 0.25)
-texture = ExtResource("6_ubj7k")
+texture = ExtResource("3_6oxh3")
 
-[node name="PuzzleBlock" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="0" unique_id=479972363 instance=ExtResource("3_hyk3g")]
-position = Vector2(-406, -263)
+[node name="PuzzleBase2" parent="PuzzleBases" parent_id_path=PackedInt32Array(1978903963) index="1" unique_id=1622232956 instance=ExtResource("2_jr8y4")]
+position = Vector2(-286, -22)
 scale = Vector2(0.25, 0.25)
-texture = ExtResource("5_nl4pw")
-MaterialId = "honeysuckle-unit"
+texture = ExtResource("4_1ocrl")
 
-[node name="PuzzleBlock2" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="1" unique_id=489499904 instance=ExtResource("3_hyk3g")]
-position = Vector2(-193, -263)
+[node name="PuzzleBase3" parent="PuzzleBases" parent_id_path=PackedInt32Array(1978903963) index="2" unique_id=129746939 instance=ExtResource("2_jr8y4")]
+position = Vector2(-280, -211)
 scale = Vector2(0.25, 0.25)
-texture = ExtResource("5_nl4pw")
-MaterialId = "honeysuckle-unit"
+texture = ExtResource("5_v1va1")
+
+[node name="PuzzleBlock" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="0" unique_id=992885494 instance=ExtResource("6_sel6i")]
+position = Vector2(-413, -220)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("7_4r1um")
+MaterialId = "honeysuckle-0"
+
+[node name="PuzzleBlock2" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="1" unique_id=1033732343 instance=ExtResource("6_sel6i")]
+position = Vector2(-203, -221)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("7_4r1um")
+MaterialId = "honeysuckle-0"
+
+[node name="PuzzleBlock3" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="2" unique_id=437760349 instance=ExtResource("6_sel6i")]
+position = Vector2(-302, 207)
+scale = Vector2(0.6, 0.6)
+texture = ExtResource("8_qffn1")
+MaterialId = "honeysuckle-2"
+
+[node name="PuzzleBlock4" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="3" unique_id=1940861579 instance=ExtResource("6_sel6i")]
+position = Vector2(-392, -15)
+scale = Vector2(0.15, 0.15)
+texture = ExtResource("9_4b2mo")
+MaterialId = "honeysuckle-1"
+
+[node name="PuzzleBlock5" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="4" unique_id=1272560181 instance=ExtResource("6_sel6i")]
+position = Vector2(-260, -15.000001)
+scale = Vector2(0.15, 0.15)
+texture = ExtResource("9_4b2mo")
+MaterialId = "honeysuckle-1"
+
+[node name="PuzzleBlock6" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="5" unique_id=1433697396 instance=ExtResource("6_sel6i")]
+position = Vector2(-124, -14.000001)
+scale = Vector2(0.15, 0.15)
+texture = ExtResource("9_4b2mo")
+MaterialId = "honeysuckle-1"
+
+[node name="PuzzleFinish" parent="." index="3" unique_id=1886262504]
+visible = true
+
+[node name="Label" type="Label" parent="PuzzleFinish" index="0" unique_id=641973769]
+offset_left = 68.0
+offset_top = -405.0
+offset_right = 580.0
+offset_bottom = -52.0
+theme_override_colors/font_color = Color(0.03529412, 0, 0, 1)
+theme_override_font_sizes/font_size = 128
+text = "拼接完成
+"

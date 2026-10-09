@@ -17,6 +17,8 @@ public partial class Puzzle : Node2D
 
 	/// <summary>A stable read-only view, in scene-tree order. Refresh after adding or removing authored targets.</summary>
 	public IReadOnlyList<PuzzleBlock> Targets => _targetView;
+	public Control PuzzleFinish => GetNodeOrNull<Control>("PuzzleFinish");
+	public bool IsFinished { get; private set; }
 
 	public Puzzle()
 	{
@@ -28,7 +30,18 @@ public partial class Puzzle : Node2D
 		RefreshTargets();
 		// The preview is separate from PuzzleBase, whose authored visuals may be used during play.
 		if (!Engine.IsEditorHint())
+		{
 			GetNodeOrNull<CanvasItem>("NotebookPreview")?.Hide();
+			SetFinished(false);
+		}
+	}
+
+	/// <summary>The notebook page reports completion; an empty puzzle stays unfinished.</summary>
+	internal void SetFinished(bool finished)
+	{
+		IsFinished = finished && _targets.Count > 0;
+		if (PuzzleFinish != null)
+			PuzzleFinish.Visible = IsFinished;
 	}
 
 	public IReadOnlyList<PuzzleBlock> GetTargets() => _targetView;

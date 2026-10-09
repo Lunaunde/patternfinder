@@ -7,7 +7,9 @@
 [ext_resource type="Texture2D" uid="uid://bg261bsbght7s" path="res://Assets/Texture/gardern/25.png" id="5_plant"]
 [ext_resource type="Texture2D" uid="uid://dyfpx0og443u8" path="res://Assets/Texture/gardern/honeysuckle/零件一副本/未标题-1.png" id="7_pr8x5"]
 [ext_resource type="Script" uid="uid://bf05ct254r1vd" path="res://Script/Data/PatternVariant.cs" id="7_variant"]
-[ext_resource type="PackedScene" uid="uid://c3sn5sjhu6ouy" path="res://Scenes/levels/honeysucklePuzzle.tscn" id="8_rs4x7"]
+[ext_resource type="PackedScene" uid="uid://bo8lr20h04oxt" path="res://Scenes/levels/honeysucklePuzzle.tscn" id="8_rs4x7"]
+[ext_resource type="Texture2D" uid="uid://dnwih41hsgaqb" path="res://Assets/Texture/gardern/honeysuckle/零件3副本/零件.png" id="8_xd3ys"]
+[ext_resource type="Texture2D" uid="uid://ukriojr2d7gh" path="res://Assets/Texture/gardern/honeysuckle/零件2副本/零件3.png" id="9_1vrdk"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_honeysuckle_plant"]
 atlas = ExtResource("5_plant")
@@ -15,14 +17,31 @@ region = Rect2(333, 153, 1292, 1895)
 
 [sub_resource type="Resource" id="PatternVariant_honeysuckle_unit"]
 script = ExtResource("7_variant")
-MaterialId = "honeysuckle-unit"
+MaterialId = "honeysuckle-0"
 MaterialName = "忍冬单体纹"
 MaterialTexture = ExtResource("7_pr8x5")
 Scale = Vector2(0.25, 0.25)
 
+[sub_resource type="Resource" id="Resource_rs4x7"]
+script = ExtResource("7_variant")
+MaterialId = "honeysuckle-1"
+MaterialName = "honeysuckle-1"
+MaterialTexture = ExtResource("8_xd3ys")
+Scale = Vector2(0.15, 0.15)
+metadata/_custom_type_script = "uid://bf05ct254r1vd"
+
+[sub_resource type="Resource" id="Resource_bdq5m"]
+script = ExtResource("7_variant")
+MaterialId = "honeysuckle-2"
+MaterialName = "honeysuckle-2"
+MaterialTexture = ExtResource("9_1vrdk")
+Scale = Vector2(0.6, 0.6)
+metadata/_custom_type_script = "uid://bf05ct254r1vd"
+
 [node name="Level" type="Node2D" unique_id=713622050]
 script = ExtResource("1_level")
 DisplayName = "忍冬藤"
+PuzzlePath = NodePath("honeysucklePuzzle")
 
 [node name="Background" parent="." unique_id=780951451 instance=ExtResource("2_background")]
 BackgroundTexture = ExtResource("3_background")
@@ -33,7 +52,6 @@ BackgroundTexture = ExtResource("3_background")
 position = Vector2(-780.5, -169.75)
 scale = Vector2(0.234, 0.234)
 texture = SubResource("AtlasTexture_honeysuckle_plant")
-Variants = Array[ExtResource("7_variant")]([SubResource("PatternVariant_honeysuckle_unit")])
+Variants = Array[ExtResource("7_variant")]([SubResource("PatternVariant_honeysuckle_unit"), SubResource("Resource_rs4x7"), SubResource("Resource_bdq5m")])
 
-[node name="Puzzle" parent="." unique_id=1173809317 instance=ExtResource("8_rs4x7")]
-visible = false
+[node name="honeysucklePuzzle" parent="." unique_id=1173809317 instance=ExtResource("8_rs4x7")]

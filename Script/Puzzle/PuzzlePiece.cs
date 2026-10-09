@@ -45,10 +45,9 @@ public partial class PuzzlePiece : Node2D
 
     public override void _Draw()
     {
-        if (_sprite == null || (!_selected && !IsMatched))
+        if (_sprite == null || !_selected || IsMatched)
             return;
         float scale = Mathf.Max(0.001f, GetGlobalTransformWithCanvas().X.Length());
-        DrawRect(_sprite.GetRect(), IsMatched ? new Color(0.35f, 0.62f, 0.37f, 0.9f) : Colors.White,
-            false, 2.5f / scale);
+        DrawRect(_sprite.GetRect(), Colors.White, false, 2.5f / scale);
     }
 }
