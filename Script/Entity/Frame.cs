@@ -25,6 +25,29 @@ public partial class Frame : Node2D
 	Vector2 _stickForce;
 	public bool IsDetected => _detectType == DetectType.Detected;
 
+	public Rect2 WorldBounds
+	{
+		get
+		{
+			Rect2 bounds = new(GlobalPosition, Vector2.Zero);
+			bool hasBounds = false;
+			foreach (Sprite2D sprite in new[] { _detectedSprite, _undetectedSprite })
+			{
+				if (sprite?.Texture == null)
+					continue;
+				Rect2 rect = sprite.GetRect();
+				Transform2D transform = sprite.GlobalTransform;
+				Rect2 spriteBounds = new(transform * rect.Position, Vector2.Zero);
+				spriteBounds = spriteBounds.Expand(transform * new Vector2(rect.End.X, rect.Position.Y));
+				spriteBounds = spriteBounds.Expand(transform * rect.End);
+				spriteBounds = spriteBounds.Expand(transform * new Vector2(rect.Position.X, rect.End.Y));
+				bounds = hasBounds ? bounds.Merge(spriteBounds) : spriteBounds;
+				hasBounds = true;
+			}
+			return bounds;
+		}
+	}
+
 	public Rect2 CaptureWorldRect
 	{
 		get
@@ -54,7 +77,7 @@ public partial class Frame : Node2D
 		return true;
 	}
 
-	private bool TryFindBestPattern(out DetectingPattern candidate)
+	private bool    TryFindBestPattern(out DetectingPattern candidate)
 	{
 		candidate = new DetectingPattern { detectingInsideRate = -float.MaxValue };
 		if(!GodotObject.IsInstanceValid(_area) || !_area.IsInsideTree())
@@ -126,6 +149,19 @@ public partial class Frame : Node2D
 		_detectedSprite.Modulate = new Color(1, 1, 1, 0.0f);
 		_undetectedSprite.Modulate = new Color(1, 1, 1, 1.0f);
 		_stickForce = Vector2.Zero;
+	}
+	public void RefreshDetection()
+	{
+		// A retained frame can be constrained by a resized viewport without moving by input.
+		if (!TryFindBestPattern(out _detectingPattern) || (IsDetected
+			? _detectingPattern.detectingInsideRate < Config.OUT_OF_STICK_RATE
+			: _detectingPattern.detectingInsideRate <= Config.FRAME_DETECTED_RATE))
+		{
+			ExitDetectedState();
+			return;
+		}
+		_detectType = DetectType.Detected;
+		StickToDetectingPattern();
 	}
 	public void Move(Vector2 delta)
 	{

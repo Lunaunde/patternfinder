@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://c7g1himam25b0" path="res://Script/Puzzle/Puzzle.cs" id="1_puzzle"]
 [ext_resource type="Script" uid="uid://cdyfhj5byjil5" path="res://Script/Data/PuzzleDefinition.cs" id="2_definition"]
 [ext_resource type="Script" uid="uid://udbch6aek8nk" path="res://Script/Puzzle/EditorOnlyPreview.cs" id="4_preview"]
-[ext_resource type="Texture2D" uid="uid://b70cgpnux8k80" path="res://Assets/Texture/gardern/手账1.png" id="5_notebook"]
+[ext_resource type="Texture2D" uid="uid://b70cgpnux8k80" path="res://Assets/Texture/ui/notebook.png" id="5_notebook"]
 
 [sub_resource type="Resource" id="PuzzleDefinition_shared"]
 script = ExtResource("2_definition")

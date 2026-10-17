@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://cjxpovr76a3qh"]
+
+[ext_resource type="Script" uid="uid://bdb6lp6v7uo8r" path="res://Script/Entity/Level.cs" id="1_level"]
+[ext_resource type="PackedScene" uid="uid://d1ry6aaq1jurr" path="res://Scenes/base/background.tscn" id="2_background"]
+
+[node name="Level" type="Node2D" unique_id=1081582855]
+script = ExtResource("1_level")
+
+[node name="Background" parent="." unique_id=1413046027 instance=ExtResource("2_background")]
+
+[node name="Patterns" type="Node2D" parent="." unique_id=2128655291]

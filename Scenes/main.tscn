@@ -6,8 +6,8 @@
 [ext_resource type="Script" uid="uid://boucsjuddyoar" path="res://Script/UI/CenteredUI.cs" id="8_layout"]
 [ext_resource type="Texture2D" uid="uid://bq75kyouymc3h" path="res://Assets/Texture/ui/garden_btn_camara@3x.png" id="9_camera"]
 [ext_resource type="Texture2D" uid="uid://chnxvpra0e7b2" path="res://Assets/Texture/ui/garden_btn_note@3x.png" id="10_note"]
-[ext_resource type="PackedScene" path="res://Scenes/levels/honeysuckle.tscn" id="14_level"]
-[ext_resource type="PackedScene" path="res://Scenes/base/notebook.tscn" id="15_notebook"]
+[ext_resource type="PackedScene" uid="uid://dk6us1jbtc4rf" path="res://Scenes/level.tscn" id="14_level"]
+[ext_resource type="PackedScene" uid="uid://cyeo1bnwtv06" path="res://Scenes/base/notebook.tscn" id="15_notebook"]
 
 [node name="Main" type="Node" unique_id=1917081249]
 script = ExtResource("1_8gbba")
@@ -70,7 +70,7 @@ offset_left = 110.0
 offset_top = 730.0
 offset_right = 437.0
 offset_bottom = 1057.0
-tooltip_text = "按住取景并移动；键盘可按住空格，方向键移动，Enter 拍照"
+tooltip_text = "按住移动取景框；对焦后可松手拍照。键盘：空格取景，方向键移动，Enter 拍照，Esc 退出"
 joystick_size = 327.0
 tip_size = 159.0
 

@@ -50,7 +50,7 @@ public partial class PhotoPanel : Control
         {
             Shader = GD.Load<Shader>("res://Assets/Shader/photo_reveal.gdshader")
         };
-        Texture2D photoFrame = GD.Load<Texture2D>("res://Assets/Texture/gardern/拍立得4.png");
+        Texture2D photoFrame = GD.Load<Texture2D>("res://Assets/Texture/ui/polaroid_4.png");
         Vector2 atlasSize = photoFrame.GetSize();
         _revealMaterial.SetShaderParameter("photo_frame_texture", photoFrame);
         _revealMaterial.SetShaderParameter("photo_frame_uv_rect", new Vector4(

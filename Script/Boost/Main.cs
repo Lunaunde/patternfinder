@@ -17,9 +17,11 @@ public partial class Main : Node
     private PhotoFlow _photoFlow;
     private bool _joystickHeld;
     private bool _keyboardHeld;
+    private bool _framingRetained;
     private int _joystickPointer = -2;
     private int _lastPointer = -1;
     private float _cameraXBound;
+    private Vector2 _worldViewportSize;
     private bool _gardenBarWasOpen;
     private readonly MaterialInventory _emptyInventory = new();
 
@@ -27,6 +29,7 @@ public partial class Main : Node
     public NotebookUI Notebook { get; private set; }
     public MaterialInventory Inventory => CurrentLevel?.Inventory ?? _emptyInventory;
     public bool IsFramingHeld => _joystickHeld || _keyboardHeld;
+    public bool IsFramingActive => GodotObject.IsInstanceValid(_frame) && !_frame.IsQueuedForDeletion();
     public bool IsPhotographing => _photoFlow?.IsBusy ?? false;
     public bool IsNotebookOpen { get; private set; }
 
@@ -66,16 +69,66 @@ public partial class Main : Node
         var position = _camera.GlobalPosition;
         position.X = Mathf.Clamp(position.X - deltaX / _camera.Zoom.X, -_cameraXBound, _cameraXBound);
         _camera.GlobalPosition = position;
+        _camera.ForceUpdateScroll();
+        ConstrainFrameToViewport(false);
     }
 
     private void UpdateCameraBounds()
     {
         Vector2 worldViewportSize = GetViewport().GetVisibleRect().Size / _camera.Zoom;
+        _worldViewportSize = worldViewportSize;
         _background.ScaleToViewport(worldViewportSize);
         _cameraXBound = _background.GetCameraXBound(worldViewportSize.X);
         var position = _camera.GlobalPosition;
         position.X = Mathf.Clamp(position.X, -_cameraXBound, _cameraXBound);
         _camera.GlobalPosition = position;
+        _camera.ForceUpdateScroll();
+        ConstrainFrameToViewport(false);
+    }
+
+    private Rect2 GetWorldViewportRect()
+    {
+        Rect2 screenRect = GetViewport().GetVisibleRect();
+        Transform2D transform = GetViewport().GetCanvasTransform().AffineInverse();
+        Rect2 worldRect = new(transform * screenRect.Position, Vector2.Zero);
+        worldRect = worldRect.Expand(transform * new Vector2(screenRect.End.X, screenRect.Position.Y));
+        worldRect = worldRect.Expand(transform * screenRect.End);
+        return worldRect.Expand(transform * new Vector2(screenRect.Position.X, screenRect.End.Y));
+    }
+
+    private void ConstrainFrameToViewport(bool followHorizontally)
+    {
+        if (!IsFramingActive || IsPhotographing || IsNotebookOpen)
+            return;
+
+        Rect2 viewportRect = GetWorldViewportRect();
+        Rect2 frameRect = _frame.WorldBounds;
+        if (followHorizontally && frameRect.Size.X <= viewportRect.Size.X)
+        {
+            float overflow = frameRect.Position.X < viewportRect.Position.X
+                ? frameRect.Position.X - viewportRect.Position.X
+                : Mathf.Max(0, frameRect.End.X - viewportRect.End.X);
+            if (!Mathf.IsZeroApprox(overflow))
+            {
+                Vector2 cameraPosition = _camera.GlobalPosition;
+                cameraPosition.X = Mathf.Clamp(cameraPosition.X + overflow, -_cameraXBound, _cameraXBound);
+                _camera.GlobalPosition = cameraPosition;
+                _camera.ForceUpdateScroll();
+                viewportRect = GetWorldViewportRect();
+            }
+        }
+
+        // Clamp the visible frame independently of the recognition/capture geometry.
+        Vector2 position = _frame.GlobalPosition;
+        Vector2 minimum = viewportRect.Position + position - frameRect.Position;
+        Vector2 maximum = viewportRect.End + position - frameRect.End;
+        position.X = minimum.X <= maximum.X
+            ? Mathf.Clamp(position.X, minimum.X, maximum.X)
+            : (minimum.X + maximum.X) * 0.5f;
+        position.Y = minimum.Y <= maximum.Y
+            ? Mathf.Clamp(position.Y, minimum.Y, maximum.Y)
+            : (minimum.Y + maximum.Y) * 0.5f;
+        _frame.GlobalPosition = position;
     }
 
     private void JoystickPressed()
@@ -96,29 +149,57 @@ public partial class Main : Node
 
     private void UpdateFraming()
     {
-        if (IsNotebookOpen || !IsFramingHeld)
+        if (IsNotebookOpen)
         {
-            if (GodotObject.IsInstanceValid(_frame))
-                _frame.QueueFree();
-            _frame = null;
+            RemoveFrame();
         }
-        else if (!IsPhotographing && !GodotObject.IsInstanceValid(_frame))
+        else if (IsFramingHeld)
         {
-            _frame = FarmeScene.Instantiate<Frame>();
-            _frame.Position = _camera.GlobalPosition;
-            AddChild(_frame);
+            _framingRetained = false;
+            if (!IsPhotographing && !IsFramingActive)
+            {
+                _frame = FarmeScene.Instantiate<Frame>();
+                AddChild(_frame);
+                _frame.GlobalPosition = _camera.GlobalPosition;
+                ConstrainFrameToViewport(false);
+            }
+        }
+        else if (IsFramingActive)
+        {
+            _framingRetained |= _frame.IsDetected;
+            if (!_framingRetained)
+                RemoveFrame();
         }
         if (_photoButton != null)
         {
-            _photoButton.Visible = !IsNotebookOpen && IsFramingHeld && !IsPhotographing;
+            _photoButton.Visible = !IsNotebookOpen && IsFramingActive && !IsPhotographing;
             _noteIcon.Visible = !IsNotebookOpen && !IsFramingHeld && !IsPhotographing;
             _joystick.Visible = !IsNotebookOpen;
         }
     }
 
+    private void RemoveFrame()
+    {
+        _framingRetained = false;
+        if (GodotObject.IsInstanceValid(_frame))
+            _frame.QueueFree();
+        _frame = null;
+    }
+
+    public void CancelFraming()
+    {
+        _joystickHeld = false;
+        _keyboardHeld = false;
+        _joystickPointer = -2;
+        RemoveFrame();
+        _joystick?.Notification((int)Control.NotificationResized);
+        ReleaseDirections();
+        UpdateFraming();
+    }
+
     public async void TakePhotograph()
     {
-        if (!IsPhotographing && !IsNotebookOpen && GodotObject.IsInstanceValid(_frame))
+        if (!IsPhotographing && !IsNotebookOpen && IsFramingActive)
             await _photoFlow.PhotographAsync(_frame);
     }
 
@@ -187,6 +268,11 @@ public partial class Main : Node
                 TakePhotograph();
                 GetViewport().SetInputAsHandled();
             }
+            else if (key.Pressed && key.PhysicalKeycode == Key.Escape && IsFramingActive)
+            {
+                CancelFraming();
+                GetViewport().SetInputAsHandled();
+            }
         }
     }
 
@@ -194,11 +280,7 @@ public partial class Main : Node
     {
         if (what != NotificationWMWindowFocusOut)
             return;
-        _joystickHeld = false;
-        _keyboardHeld = false;
-        _joystick?.Notification((int)Control.NotificationResized);
-        ReleaseDirections();
-        UpdateFraming();
+        CancelFraming();
     }
 
     public override void _Ready()
@@ -253,7 +335,15 @@ public partial class Main : Node
 
     public override void _PhysicsProcess(double delta)
     {
-        if (GodotObject.IsInstanceValid(_frame) && !IsPhotographing && !IsNotebookOpen)
+        Vector2 worldViewportSize = GetViewport().GetVisibleRect().Size / _camera.Zoom;
+        if (!_worldViewportSize.IsEqualApprox(worldViewportSize))
+            UpdateCameraBounds();
+        if (!IsFramingActive || IsPhotographing || IsNotebookOpen)
+            return;
+        if (IsFramingHeld)
             _frame.Move(Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down"));
+        ConstrainFrameToViewport(IsFramingHeld);
+        if (!IsFramingHeld)
+            _frame.RefreshDetection();
     }
 }

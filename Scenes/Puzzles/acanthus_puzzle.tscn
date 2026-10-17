@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://bo8lr20h04oxt"]
+
+[ext_resource type="PackedScene" uid="uid://dksn1rksfvp5v" path="res://Scenes/base/puzzle.tscn" id="1_eeb50"]
+[ext_resource type="PackedScene" path="res://Scenes/base/puzzle_base.tscn" id="2_1uug2"]
+[ext_resource type="Texture2D" uid="uid://b5wyddlhjn072" path="res://Assets/Texture/patterns/acanthus/acanthus_1.png" id="3_icve6"]
+[ext_resource type="Texture2D" uid="uid://ck4bx3rysjf0n" path="res://Assets/Texture/patterns/acanthus/acanthus_1_1.png" id="5_ghxmr"]
+[ext_resource type="PackedScene" path="res://Scenes/base/puzzle_block.tscn" id="6_qt0hm"]
+
+[node name="AcanthusPuzzle" unique_id=1173809317 instance=ExtResource("1_eeb50")]
+
+[node name="Acanthus 1" parent="PuzzleBases" parent_id_path=PackedInt32Array(1978903963) index="0" unique_id=1707283189 instance=ExtResource("2_1uug2")]
+position = Vector2(-287, -119)
+scale = Vector2(0.25, 0.25)
+texture = ExtResource("3_icve6")
+
+[node name="Acanthus 1 1" parent="PuzzleBlocks" parent_id_path=PackedInt32Array(661982213) index="0" unique_id=1983946428 instance=ExtResource("6_qt0hm")]
+position = Vector2(-214, -124)
+scale = Vector2(0.24, 0.24)
+texture = ExtResource("5_ghxmr")
+
+[node name="PuzzleFinish" parent="." index="3" unique_id=1731224524]
+visible = true
+
+[node name="Label" type="Label" parent="PuzzleFinish" index="0" unique_id=641973769]
+layout_mode = 0
+offset_left = 68.0
+offset_top = -405.0
+offset_right = 580.0
+offset_bottom = -52.0
+theme_override_colors/font_color = Color(0.03529412, 0, 0, 1)
+theme_override_font_sizes/font_size = 128
+text = "拼接完成
+"

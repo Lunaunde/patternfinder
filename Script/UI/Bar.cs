@@ -236,8 +236,8 @@ public partial class Bar : Control
 
         _panel = new Control { Name = "MaterialDrawer", Size = OpenSize, MouseFilter = MouseFilterEnum.Ignore, ZIndex = 1 };
         AddChild(_panel);
-        _openBackground = DrawerBackground("res://Assets/Texture/gardern/garden_cardbar_bg_open_extend@3x.png", "OpenBackground");
-        _foldBackground = DrawerBackground("res://Assets/Texture/gardern/garden_cardbar_bg_close_extend@3x.png", "FoldBackground");
+        _openBackground = DrawerBackground("res://Assets/Texture/ui/garden_cardbar_bg_open_extend@3x.png", "OpenBackground");
+        _foldBackground = DrawerBackground("res://Assets/Texture/ui/garden_cardbar_bg_close_extend@3x.png", "FoldBackground");
         _panel.AddChild(_openBackground);
         _panel.AddChild(_foldBackground);
         _cardsRoot = new Control

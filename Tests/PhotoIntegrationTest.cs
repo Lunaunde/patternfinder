@@ -21,6 +21,7 @@ public partial class PhotoIntegrationTest : Node
     private Vector2I _verifiedRenderSize;
     private readonly Dictionary<string, MaterialEntry> _configuredCandidates = new(StringComparer.Ordinal);
     private MaterialEntry _firstCollected;
+    private MaterialEntry _secondCandidate;
     private int _checks;
     private string _stage = "startup";
 
@@ -58,18 +59,23 @@ public partial class PhotoIntegrationTest : Node
         _designRoot = _main.GetNode<Control>(UiPath);
         _photoPanel = _designRoot.GetNode<PhotoPanel>("PhotoPanel");
         _bar = _designRoot.GetNode<Bar>("MaterialBar");
-        Check(_pattern.Variants.Count == 1 && _pattern.Variants[0].Scale.DistanceTo(Vector2.One * 0.25f) < 0.0001f,
-            "The current authored honeysuckle supplies one motif with its configured quarter-size scale.");
+        Check(_pattern.Variants.Count > 0 && _pattern.Variants.All(variant => variant.MaterialTexture != null
+            && MaterialEntry.IsUsableScale(variant.Scale)),
+            "The authored honeysuckle supplies usable motif artwork and configured scales.");
         foreach (PatternVariant variant in _pattern.Variants)
             _configuredCandidates.Add(variant.MaterialId,
                 new MaterialEntry(variant.MaterialId, variant.MaterialName, variant.MaterialTexture, variant.Scale));
-        var extra = new MaterialEntry("integration-second-variant", "测试第二纹样", MakeFixtureTexture(), new Vector2(-0.18f, 0.31f));
-        _configuredCandidates.Add(extra.MaterialId, extra);
-        Check(_configuredCandidates.Count == 2 && _configuredCandidates.Values.All(entry => entry.Texture != null),
-            "A test-only second candidate keeps multi-variant coverage without changing the single-motif product scene.");
+        MaterialEntry firstCandidate = _configuredCandidates[_pattern.Variants[0].MaterialId];
+        _secondCandidate = new MaterialEntry("integration-second-variant", "测试第二纹样", MakeFixtureTexture(), new Vector2(-0.18f, 0.31f));
+        _configuredCandidates.Add(_secondCandidate.MaterialId, _secondCandidate);
+        _pattern.Variants = new Godot.Collections.Array<PatternVariant> { Candidate(firstCandidate) };
+        Check(_configuredCandidates.Values.All(entry => entry.Texture != null)
+            && _pattern.Variants[0].MaterialId == firstCandidate.MaterialId,
+            "The fixture records every authored motif and makes the first photograph deterministic with a copied first variant.");
 
         GetWindow().Mode = Window.ModeEnum.Windowed;
         await ResizeWindowAsync(new Vector2I(1080, 480));
+        await CheckFramingCancellationAsync();
         await PositionFrameOnPatternAsync();
         await CheckIndependentCaptureAsync();
         await ScreenshotAsync("chatgpt-01-framing");
@@ -80,11 +86,11 @@ public partial class PhotoIntegrationTest : Node
         await CheckFailureAsync();
         await CheckFifthRecognitionAsync();
         await CheckFullInventoryAsync();
-        SetFramingHeld(false);
+        _main.CancelFraming();
         await PhysicsFramesAsync(2);
-        Check(FindFrame() == null, "Releasing after all captures removes the viewfinder.");
+        Check(!_main.IsFramingHeld && FindFrame() == null, "Explicit cancellation exits the retained viewfinder after all captures.");
         await CheckMainCardGesturesAsync();
-        SetFramingHeld(false);
+        _main.CancelFraming();
         await PhysicsFramesAsync(2);
 
         _stage = "window aspect ratios";
@@ -99,6 +105,44 @@ public partial class PhotoIntegrationTest : Node
             CheckCenteredDesign(sample.Name);
             await ScreenshotAsync($"chatgpt-layout-{sample.Name}");
         }
+    }
+
+    private async Task CheckFramingCancellationAsync()
+    {
+        _stage = "unfocused release and explicit focus cancellation";
+        SetFramingHeld(true);
+        Frame unfocused = FindFrame();
+        unfocused.GlobalPosition = _pattern.GlobalPosition + new Vector2(1100, 350);
+        await PhysicsFramesAsync(3);
+        Check(!unfocused.IsDetected && !unfocused.TryGetCaptureTarget(out _, out _),
+            "The cancellation fixture starts without a focused plant.");
+        SetFramingHeld(false);
+        await PhysicsFramesAsync(2);
+        Check(!_main.IsFramingHeld && FindFrame() == null
+            && !_designRoot.GetNode<TextureButton>("PhotoButton").Visible,
+            "Releasing Space before focus cancels the viewfinder and hides the shutter.");
+
+        await PositionFrameOnPatternAsync();
+        SetFramingHeld(false);
+        await PhysicsFramesAsync(2);
+        Check(FindFrame() != null && !_main.IsFramingHeld, "A focused viewfinder survives Space release before cancellation.");
+        GetViewport().PushInput(new InputEventKey { PhysicalKeycode = Key.Escape, Pressed = true }, true);
+        GetViewport().PushInput(new InputEventKey { PhysicalKeycode = Key.Escape, Pressed = false }, true);
+        await PhysicsFramesAsync(2);
+        Check(FindFrame() == null && !_designRoot.GetNode<TextureButton>("PhotoButton").Visible,
+            "Escape explicitly exits a retained focused viewfinder.");
+
+        await PositionFrameOnPatternAsync();
+        SetFramingHeld(false);
+        await PhysicsFramesAsync(2);
+        Check(_main.OpenNotebook(), "A retained focus does not prevent opening the notebook after releasing framing input.");
+        await PhysicsFramesAsync(2);
+        Check(_main.IsNotebookOpen && FindFrame() == null,
+            "Opening the notebook exits the retained garden viewfinder.");
+        _main.CloseNotebook();
+        await ProcessFramesAsync(2);
+        Check(!_main.IsNotebookOpen && FindFrame() == null,
+            "Returning from the notebook does not resurrect its canceled garden focus.");
     }
 
     private async Task CheckIndependentCaptureAsync()
@@ -153,13 +197,24 @@ public partial class PhotoIntegrationTest : Node
 
     private async Task CheckNewMaterialAndReleaseAsync()
     {
-        _stage = "successful new material and release while busy";
+        _stage = "focused Space release and native shutter click";
         Check(_main.Inventory.Count == 0, "The real Main starts with an empty inventory.");
         Frame frame = FindFrame();
         Vector2 cameraPosition = _camera.GlobalPosition;
         Vector2 framePosition = frame.GlobalPosition;
-        _main.TakePhotograph();
-        Check(_main.IsPhotographing, "Taking a photograph enters the busy state immediately.");
+        Check(frame.IsDetected, "The first photograph starts with a focused viewfinder.");
+        SetFramingHeld(false);
+        await PhysicsFramesAsync(2);
+        Check(!_main.IsFramingHeld && FindFrame() == frame && frame.Visible
+            && _designRoot.GetNode<TextureButton>("PhotoButton").Visible,
+            "Releasing Space after focus keeps the same viewfinder and the native shutter available.");
+        Input.ActionPress("ui_right", 1);
+        await PhysicsFramesAsync(3);
+        Input.ActionRelease("ui_right");
+        Check(frame.GlobalPosition.DistanceTo(framePosition) < 0.001f,
+            "A retained viewfinder stays frozen when directional input arrives without held framing input.");
+        await ClickPhotoButtonAsync();
+        Check(_main.IsPhotographing, "Clicking the actual shutter after Space release enters the photograph busy state.");
         Check(_pattern.SuccessfulRecognitionCount == 1, "One recognized photograph selects exactly one variant.");
         _main.TakePhotograph();
         Check(_main.Inventory.Count == 0 && _pattern.SuccessfulRecognitionCount == 1,
@@ -194,10 +249,12 @@ public partial class PhotoIntegrationTest : Node
         await ScreenshotAsync("chatgpt-02-photograph");
         SetFramingHeld(false);
         await PhysicsFramesAsync(2);
-        Check(!_main.IsFramingHeld && FindFrame() == null, "Space release during the animation removes the old Frame safely.");
+        Check(!_main.IsFramingHeld && FindFrame() == frame && !frame.Visible
+            && frame.GlobalPosition.DistanceTo(framePosition) < 0.001f,
+            "A release during the animation retains the focused Frame safely while presentation keeps it hidden and frozen.");
         _main.TakePhotograph();
-        Check(_main.IsPhotographing && _main.Inventory.Count == 0,
-            "Another photograph remains rejected after the old Frame is released during presentation.");
+        Check(_main.IsPhotographing && _main.Inventory.Count == 0 && _pattern.SuccessfulRecognitionCount == 1,
+            "Another photograph remains rejected while presentation is busy even though the focused Frame survives release.");
         await WaitForRevealAsync();
         await ScreenshotAsync("chatgpt-03-reveal");
         await WaitUntilAsync(() => PhotographCard().Visible && PhotographCard().Scale.X < 0.95f,
@@ -209,12 +266,12 @@ public partial class PhotoIntegrationTest : Node
         _firstCollected = _main.Inventory.Entries[0];
         MaterialEntry expected = _configuredCandidates[_firstCollected.MaterialId];
         Check(_firstCollected.DisplayName == expected.DisplayName && _firstCollected.Texture == expected.Texture
-            && _firstCollected.Scale.DistanceTo(expected.Scale) < 0.0001f
-            && _firstCollected.Scale.DistanceTo(Vector2.One * 0.25f) < 0.0001f,
-            "The stored ID, name, art and quarter-size scale match the real candidate frozen before configuration edits.");
-        Check(FindFrame() == null && !_designRoot.GetNode<TextureButton>("PhotoButton").Visible
-            && _designRoot.GetNode<Control>("NoteIcon").Visible,
-            "Finishing after a release restores observation mode without resurrecting the Frame.");
+            && _firstCollected.Scale.DistanceTo(expected.Scale) < 0.0001f,
+            "The stored ID, name, art and configured scale match the real candidate frozen before configuration edits.");
+        Check(!_main.IsFramingHeld && FindFrame() == frame && frame.Visible
+            && frame.GlobalPosition.DistanceTo(framePosition) < 0.001f
+            && _designRoot.GetNode<TextureButton>("PhotoButton").Visible,
+            "Finishing after release restores the same focused viewfinder and allows another photograph without holding Space.");
         Check(!_main.GetNode<Control>("UILayer/InputBlocker").Visible && _bar.Visible,
             "Finishing clears the blocker and restores the material drawer.");
         Check(CountLabel().Text == "1/14", "The drawer displays the updated inventory count.");
@@ -223,19 +280,43 @@ public partial class PhotoIntegrationTest : Node
 
     private async Task CheckDuplicateAsync()
     {
-        _stage = "duplicate material";
+        _stage = "native joystick release and touch shutter duplicate";
         _pattern.Variants = new Godot.Collections.Array<PatternVariant> { Candidate(_firstCollected) };
-        await PositionFrameOnPatternAsync();
-        _main.TakePhotograph();
-        Check(_main.IsPhotographing, "The same plant can be photographed again.");
+        _main.CancelFraming();
+        await PhysicsFramesAsync(2);
+        VirtualJoystick joystick = _designRoot.GetNode<VirtualJoystick>("VirtualJoystick");
+        Vector2 joystickPoint = joystick.GetGlobalTransformWithCanvas() * (joystick.Size / 2);
+        PushNativeTouch(21, joystickPoint, true);
+        await WaitUntilAsync(() => _main.IsFramingHeld && FindFrame() != null,
+            "A real touch press on the left joystick starts framing.");
+        Frame frame = FindFrame();
+        frame.GlobalPosition = _pattern.GlobalPosition;
+        await PhysicsFramesAsync(3);
+        Check(frame.IsDetected && frame.TryGetCaptureTarget(out var target, out float rate)
+            && target == _pattern && rate >= Config.PHOTO_SUCCESS_RATE,
+            "The touch-controlled viewfinder focuses the photographed plant before releasing the joystick.");
+        Vector2 framePosition = frame.GlobalPosition;
+        PushNativeTouch(21, joystickPoint, false);
+        await PhysicsFramesAsync(2);
+        Check(!_main.IsFramingHeld && FindFrame() == frame && frame.Visible
+            && frame.GlobalPosition.DistanceTo(framePosition) < 0.001f
+            && _designRoot.GetNode<TextureButton>("PhotoButton").Visible,
+            "Releasing the left joystick retains the focused Frame and exposes the right-hand shutter.");
+        TextureButton shutter = _designRoot.GetNode<TextureButton>("PhotoButton");
+        Vector2 shutterPoint = shutter.GetGlobalTransformWithCanvas() * (shutter.Size / 2);
+        PushNativeTouch(22, shutterPoint, true);
+        await ProcessFramesAsync(1);
+        PushNativeTouch(22, shutterPoint, false);
+        await WaitUntilAsync(() => _main.IsPhotographing, "Touching the actual right-hand shutter after joystick release starts another photograph.");
         await WaitForRevealAsync();
         await ScreenshotAsync("chatgpt-06-duplicate");
         await WaitForIdleAsync();
         Check(_main.Inventory.Count == 1 && _pattern.SuccessfulRecognitionCount == 2,
             "A duplicate counts as recognition but does not increase inventory occupancy.");
-        Check(_main.IsFramingHeld && FindFrame() != null && FindFrame().Visible
+        Check(!_main.IsFramingHeld && FindFrame() == frame && frame.Visible
+            && frame.GlobalPosition.DistanceTo(framePosition) < 0.001f
             && _designRoot.GetNode<TextureButton>("PhotoButton").Visible,
-            "Keeping Space held through presentation returns directly to a usable viewfinder.");
+            "Completing the touch photograph preserves a usable frozen viewfinder after the joystick was released.");
     }
 
     private async Task AdvanceToFourthRecognitionAsync()
@@ -267,13 +348,18 @@ public partial class PhotoIntegrationTest : Node
         Check(_main.Inventory.Count == 1 && CountLabel().Text == "1/14"
             && _pattern.SuccessfulRecognitionCount == previousRecognitions,
             "The scribble failure never becomes inventory or spends the next guarantee attempt.");
+        SetFramingHeld(false);
+        await PhysicsFramesAsync(2);
+        Check(FindFrame() == null, "Releasing an unfocused viewfinder after a failed photograph cancels it normally.");
     }
 
     private async Task CheckFifthRecognitionAsync()
     {
         _stage = "fifth recognition guarantee";
-        _pattern.Variants = new Godot.Collections.Array<PatternVariant>(
-            _configuredCandidates.Values.Select(Candidate));
+        _pattern.Variants = new Godot.Collections.Array<PatternVariant>
+        {
+            Candidate(_firstCollected), Candidate(_secondCandidate)
+        };
         _main.CurrentLevel.RefreshMaterials();
         await PositionFrameOnPatternAsync();
         _main.TakePhotograph();
@@ -282,11 +368,11 @@ public partial class PhotoIntegrationTest : Node
         await ScreenshotAsync("chatgpt-09-second-variant-revealed");
         await WaitForIdleAsync();
         Check(_main.Inventory.Count == 2 && _pattern.SuccessfulRecognitionCount == 5
-            && _configuredCandidates.Keys.All(_main.Inventory.Contains),
+            && _main.Inventory.Contains(_firstCollected.MaterialId) && _main.Inventory.Contains(_secondCandidate.MaterialId),
             "The fifth recognized photo collects the second test candidate of the same plant.");
         Check(_main.Inventory.Entries.All(entry => entry.Scale.DistanceTo(_configuredCandidates[entry.MaterialId].Scale) < 0.0001f
             && entry.Texture == _configuredCandidates[entry.MaterialId].Texture),
-            "The photo pipeline preserves both authored quarter scale and the test candidate's signed nonuniform scale.");
+            "The photo pipeline preserves both the authored scale and the test candidate's signed nonuniform scale.");
         await ScreenshotAsync("chatgpt-10-two-variants-stored");
     }
 
@@ -429,20 +515,43 @@ public partial class PhotoIntegrationTest : Node
         Position = to, GlobalPosition = to, Relative = to - from, ButtonMask = MouseButtonMask.Left
     }, true);
 
+    private async Task ClickPhotoButtonAsync()
+    {
+        TextureButton button = _designRoot.GetNode<TextureButton>("PhotoButton");
+        Check(button.Visible, "The real photograph button is visible before native mouse input.");
+        Vector2 point = button.GetGlobalTransformWithCanvas() * (button.Size / 2);
+        PushCardButton(point, true);
+        await ProcessFramesAsync(1);
+        PushCardButton(point, false);
+        await ProcessFramesAsync(1);
+    }
+
+    private void PushNativeTouch(int index, Vector2 viewportPosition, bool pressed)
+    {
+        // ParseInputEvent enters through the native window, whose coordinates precede viewport stretching.
+        // PushInput(..., true), used by the other gesture helpers, instead accepts viewport-local coordinates.
+        Vector2 windowPosition = GetViewport().GetFinalTransform() * viewportPosition;
+        if (pressed)
+            Check(new Rect2(Vector2.Zero, new Vector2(GetWindow().Size.X, GetWindow().Size.Y)).HasPoint(windowPosition),
+                "The native touch position lies inside the rendered window after converting from viewport coordinates.");
+        Input.ParseInputEvent(new InputEventScreenTouch { Index = index, Position = windowPosition, Pressed = pressed });
+    }
+
     private async Task PositionFrameOnPatternAsync()
     {
         SetFramingHeld(true);
         Frame frame = FindFrame();
         Check(frame != null, "Framing input supplies a Frame for the next photograph.");
         frame.GlobalPosition = _pattern.GlobalPosition;
-        await PhysicsFramesAsync(2);
-        Check(frame.TryGetCaptureTarget(out var target, out float rate) && target == _pattern && rate >= Config.PHOTO_SUCCESS_RATE,
+        await PhysicsFramesAsync(3);
+        Check(frame.IsDetected && frame.TryGetCaptureTarget(out var target, out float rate)
+            && target == _pattern && rate >= Config.PHOTO_SUCCESS_RATE,
             "The prepared viewfinder has successful coverage before taking a photograph.");
     }
 
     private void SetFramingHeld(bool held)
     {
-        _main._Input(new InputEventKey { PhysicalKeycode = Key.Space, Pressed = held });
+        GetViewport().PushInput(new InputEventKey { PhysicalKeycode = Key.Space, Pressed = held }, true);
     }
 
     private Frame FindFrame()

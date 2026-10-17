@@ -1,0 +1,189 @@
+[gd_scene format=3 uid="uid://dk6us1jbtc4rf"]
+
+[ext_resource type="PackedScene" uid="uid://cjxpovr76a3qh" path="res://Scenes/base/base_level.tscn" id="1_tumq0"]
+[ext_resource type="Texture2D" uid="uid://danhphduloj40" path="res://Assets/Texture/background/background.png" id="2_wqkje"]
+[ext_resource type="Texture2D" uid="uid://be2trcbcsj0cl" path="res://Assets/Texture/plant/acanthus 1.png" id="4_0f350"]
+[ext_resource type="PackedScene" uid="uid://cejaybl0427oh" path="res://Scenes/base/pattern_object.tscn" id="4_pattern"]
+[ext_resource type="Texture2D" uid="uid://b331cul5yc4bi" path="res://Assets/Texture/plant/acanthus 2.png" id="5_8c0lf"]
+[ext_resource type="Texture2D" uid="uid://bmm5qx0alwe80" path="res://Assets/Texture/plant/scroll grass 1.png" id="6_d3deu"]
+[ext_resource type="Texture2D" uid="uid://cwsw78cr51n" path="res://Assets/Texture/plant/scroll grass 2.png" id="7_csjfj"]
+[ext_resource type="Texture2D" uid="uid://dau7yunl1w8sh" path="res://Assets/Texture/plant/scroll grass 3.png" id="8_nkhef"]
+[ext_resource type="Texture2D" uid="uid://83ctpjvmnhok" path="res://Assets/Texture/plant/vine 1.png" id="9_fmtd1"]
+[ext_resource type="Texture2D" uid="uid://ba6t4hyepvsdq" path="res://Assets/Texture/plant/vine 2.png" id="10_5o4ln"]
+[ext_resource type="Texture2D" uid="uid://cx7y2nhk8ipd4" path="res://Assets/Texture/plant/vine 3.png" id="11_ag4x3"]
+[ext_resource type="Texture2D" uid="uid://6rak7ii78k3d" path="res://Assets/Texture/plant/vine 4.png" id="12_maxl3"]
+[ext_resource type="Texture2D" uid="uid://dd2nc75tqupm2" path="res://Assets/Texture/plant/vine 5.png" id="13_md013"]
+[ext_resource type="Texture2D" uid="uid://fwy043k1a1xn" path="res://Assets/Texture/plant/vine 6.png" id="14_ogdfn"]
+[ext_resource type="Texture2D" uid="uid://ycuoi4bi8ymm" path="res://Assets/Texture/plant/vine 7.png" id="15_l1uqm"]
+[ext_resource type="Texture2D" uid="uid://b6forxkj743nk" path="res://Assets/Texture/plant/vine 8.png" id="16_gx30c"]
+[ext_resource type="Texture2D" uid="uid://nl8k634qmefu" path="res://Assets/Texture/plant/vine 9.png" id="17_jmchl"]
+[ext_resource type="Texture2D" uid="uid://bady6tep23eks" path="res://Assets/Texture/plant/grape 1.png" id="18_s14gf"]
+[ext_resource type="Texture2D" uid="uid://dodyinhjytmqq" path="res://Assets/Texture/plant/grape 2.png" id="19_cpxpw"]
+[ext_resource type="Texture2D" uid="uid://vo187d783b1t" path="res://Assets/Texture/plant/grape 3.png" id="20_wbq00"]
+[ext_resource type="Texture2D" uid="uid://nyk4y5xatogx" path="res://Assets/Texture/plant/grape 4.png" id="21_dx6so"]
+[ext_resource type="Texture2D" uid="uid://bqnk5ctykp5ak" path="res://Assets/Texture/plant/peony 1.png" id="22_54tli"]
+[ext_resource type="Texture2D" uid="uid://bu43s5s0glw7w" path="res://Assets/Texture/plant/peony 2.png" id="23_8huh7"]
+[ext_resource type="Texture2D" uid="uid://u6t6xjlsa1jw" path="res://Assets/Texture/plant/peony 3.png" id="24_2veds"]
+[ext_resource type="Texture2D" uid="uid://dy1gne2nmf83h" path="res://Assets/Texture/plant/peony 4.png" id="25_m4bds"]
+[ext_resource type="Texture2D" uid="uid://dijl3adafw3kw" path="res://Assets/Texture/plant/peony 5.png" id="26_t4ggf"]
+[ext_resource type="Texture2D" uid="uid://bx2nu13418whb" path="res://Assets/Texture/plant/peony 6.png" id="27_uoc0b"]
+[ext_resource type="Texture2D" uid="uid://cfltccy0ep6i3" path="res://Assets/Texture/plant/lotus seedpod 1.png" id="28_2lp24"]
+[ext_resource type="Texture2D" uid="uid://diqje3m3tp2vi" path="res://Assets/Texture/plant/lotus leaf 1.png" id="29_v15qs"]
+[ext_resource type="Texture2D" uid="uid://macqn7gro6ex" path="res://Assets/Texture/plant/lotus leaf 2.png" id="30_ubg6v"]
+[ext_resource type="Texture2D" uid="uid://dratn3tt7vrix" path="res://Assets/Texture/plant/lotus leaf 3.png" id="31_ht0u2"]
+[ext_resource type="Texture2D" uid="uid://bb5fc6v38vkox" path="res://Assets/Texture/plant/lotus 1.png" id="32_23rfw"]
+[ext_resource type="Texture2D" uid="uid://7rak57id4m6j" path="res://Assets/Texture/plant/lotus 2.png" id="33_icsqr"]
+[ext_resource type="Texture2D" uid="uid://u4tlpfs56vrq" path="res://Assets/Texture/plant/lotus 3.png" id="34_5oihu"]
+[ext_resource type="Texture2D" uid="uid://d000hh5h18t4r" path="res://Assets/Texture/plant/lotus 4.png" id="35_16bfe"]
+[ext_resource type="Texture2D" uid="uid://be23do2x8ibq5" path="res://Assets/Texture/plant/lotus 5.png" id="36_6g3im"]
+[ext_resource type="Texture2D" uid="uid://dcjlrpn8y5xt6" path="res://Assets/Texture/plant/lotus 6.png" id="37_w8uds"]
+[ext_resource type="Texture2D" uid="uid://cm1md668cc8to" path="res://Assets/Texture/plant/lotus 7.png" id="38_uty0w"]
+[ext_resource type="PackedScene" uid="uid://bo8lr20h04oxt" path="res://Scenes/Puzzles/acanthus_puzzle.tscn" id="39_csjfj"]
+
+[node name="Level" unique_id=1344091667 instance=ExtResource("1_tumq0")]
+PuzzlePath = NodePath("AcanthusPuzzle")
+
+[node name="Background" parent="." index="0" unique_id=1413046027]
+BackgroundTexture = ExtResource("2_wqkje")
+
+[node name="acanthus 1" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="0" unique_id=1319498223 instance=ExtResource("4_pattern")]
+position = Vector2(-306, -174.5)
+texture = ExtResource("4_0f350")
+
+[node name="acanthus 2" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="1" unique_id=1385686834 instance=ExtResource("4_pattern")]
+position = Vector2(-524, 25)
+texture = ExtResource("5_8c0lf")
+
+[node name="scroll grass 1" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="2" unique_id=223397323 instance=ExtResource("4_pattern")]
+position = Vector2(325.5, 52)
+texture = ExtResource("6_d3deu")
+
+[node name="scroll grass 2" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="3" unique_id=612318524 instance=ExtResource("4_pattern")]
+position = Vector2(-11, -273)
+texture = ExtResource("7_csjfj")
+
+[node name="scroll grass 3" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="4" unique_id=1138074417 instance=ExtResource("4_pattern")]
+position = Vector2(1200, -135)
+texture = ExtResource("8_nkhef")
+
+[node name="vine 1" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="5" unique_id=75710452 instance=ExtResource("4_pattern")]
+position = Vector2(-1238, -129)
+texture = ExtResource("9_fmtd1")
+
+[node name="vine 2" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="6" unique_id=1055999754 instance=ExtResource("4_pattern")]
+position = Vector2(-1165.5, -245)
+texture = ExtResource("10_5o4ln")
+
+[node name="vine 3" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="7" unique_id=1534838312 instance=ExtResource("4_pattern")]
+position = Vector2(-822, -273)
+texture = ExtResource("11_ag4x3")
+
+[node name="vine 4" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="8" unique_id=1743431223 instance=ExtResource("4_pattern")]
+position = Vector2(-956.5, -152.2)
+texture = ExtResource("12_maxl3")
+
+[node name="vine 5" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="9" unique_id=1415094351 instance=ExtResource("4_pattern")]
+position = Vector2(-1108.5, -141.5)
+texture = ExtResource("13_md013")
+
+[node name="vine 6" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="10" unique_id=53186956 instance=ExtResource("4_pattern")]
+position = Vector2(-960.5, -281)
+texture = ExtResource("14_ogdfn")
+
+[node name="vine 7" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="11" unique_id=1238284192 instance=ExtResource("4_pattern")]
+position = Vector2(-1184.5, -347.5)
+texture = ExtResource("15_l1uqm")
+
+[node name="vine 8" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="12" unique_id=1048912085 instance=ExtResource("4_pattern")]
+position = Vector2(-1022, -188)
+texture = ExtResource("16_gx30c")
+
+[node name="vine 9" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="13" unique_id=1126351040 instance=ExtResource("4_pattern")]
+position = Vector2(-1123.5, -42)
+texture = ExtResource("17_jmchl")
+
+[node name="grape 1" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="14" unique_id=956046352 instance=ExtResource("4_pattern")]
+position = Vector2(-1248, -339.5)
+texture = ExtResource("18_s14gf")
+
+[node name="grape 2" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="15" unique_id=682222906 instance=ExtResource("4_pattern")]
+position = Vector2(-944.5, -402)
+texture = ExtResource("19_cpxpw")
+
+[node name="grape 3" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="16" unique_id=1741266597 instance=ExtResource("4_pattern")]
+position = Vector2(-762.5, -372)
+texture = ExtResource("20_wbq00")
+
+[node name="grape 4" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="17" unique_id=410909379 instance=ExtResource("4_pattern")]
+position = Vector2(-1143, -487.5)
+texture = ExtResource("21_dx6so")
+
+[node name="peony 1" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="18" unique_id=381844920 instance=ExtResource("4_pattern")]
+position = Vector2(198, 455.5)
+texture = ExtResource("22_54tli")
+
+[node name="peony 2" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="19" unique_id=1634483341 instance=ExtResource("4_pattern")]
+position = Vector2(-609, 340)
+texture = ExtResource("23_8huh7")
+
+[node name="peony 3" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="20" unique_id=1128074547 instance=ExtResource("4_pattern")]
+position = Vector2(-610.5, 409.5)
+texture = ExtResource("24_2veds")
+
+[node name="peony 4" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="21" unique_id=1963035316 instance=ExtResource("4_pattern")]
+position = Vector2(-832, 254.5)
+texture = ExtResource("25_m4bds")
+
+[node name="peony 5" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="22" unique_id=667948073 instance=ExtResource("4_pattern")]
+position = Vector2(415, 382)
+texture = ExtResource("26_t4ggf")
+
+[node name="peony 6" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="23" unique_id=1689557977 instance=ExtResource("4_pattern")]
+position = Vector2(695.5, 277.5)
+texture = ExtResource("27_uoc0b")
+
+[node name="lotus seedpod 1" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="24" unique_id=367756604 instance=ExtResource("4_pattern")]
+position = Vector2(-348, 195.5)
+texture = ExtResource("28_2lp24")
+
+[node name="lotus leaf 1" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="25" unique_id=1180397453 instance=ExtResource("4_pattern")]
+position = Vector2(-64.5, 288.5)
+texture = ExtResource("29_v15qs")
+
+[node name="lotus leaf 2" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="26" unique_id=893368236 instance=ExtResource("4_pattern")]
+position = Vector2(-278, 154)
+texture = ExtResource("30_ubg6v")
+
+[node name="lotus leaf 3" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="27" unique_id=154170175 instance=ExtResource("4_pattern")]
+position = Vector2(119.5, 221.5)
+texture = ExtResource("31_ht0u2")
+
+[node name="lotus 1" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="28" unique_id=894918855 instance=ExtResource("4_pattern")]
+position = Vector2(-172.5, 198)
+texture = ExtResource("32_23rfw")
+
+[node name="lotus 2" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="29" unique_id=146410488 instance=ExtResource("4_pattern")]
+position = Vector2(-297.5, 231)
+texture = ExtResource("33_icsqr")
+
+[node name="lotus 3" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="30" unique_id=1657801600 instance=ExtResource("4_pattern")]
+position = Vector2(214.5, 139.5)
+texture = ExtResource("34_5oihu")
+
+[node name="lotus 4" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="31" unique_id=1893543216 instance=ExtResource("4_pattern")]
+position = Vector2(-140, 315)
+texture = ExtResource("35_16bfe")
+
+[node name="lotus 5" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="32" unique_id=1121857560 instance=ExtResource("4_pattern")]
+position = Vector2(-636, 140)
+texture = ExtResource("36_6g3im")
+
+[node name="lotus 6" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="33" unique_id=1220647906 instance=ExtResource("4_pattern")]
+position = Vector2(54.5, 244)
+texture = ExtResource("37_w8uds")
+
+[node name="lotus 7" parent="Patterns" parent_id_path=PackedInt32Array(2128655291) index="34" unique_id=77866659 instance=ExtResource("4_pattern")]
+position = Vector2(-390, 188.5)
+texture = ExtResource("38_uty0w")
+
+[node name="AcanthusPuzzle" parent="." index="2" unique_id=1173809317 instance=ExtResource("39_csjfj")]

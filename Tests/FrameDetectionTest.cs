@@ -47,16 +47,18 @@ public partial class FrameDetectionTest : Node2D
         PatternObject second = CreatePattern(patternScene, texture, new Vector2(120, 0));
         await RefreshOverlaps();
         frame.Move(Vector2.Zero);
-        Check(frame.IsDetected && Near(frame.Position.X, 84.8f), "Detected switches to the best current overlap and applies its attraction.");
-        Check(frame.TryGetCaptureTarget(out target, out rate) && target == second && Near(rate, 0.648f), "Capture recomputes coverage after movement.");
+        float attractedX = 80 + 0.6f * Config.STICK_FORCE_RATE * Config.JOYSTICK_SPEED;
+        Check(frame.IsDetected && Near(frame.Position.X, attractedX), "Detected switches to the best current overlap and applies its attraction.");
+        Check(frame.TryGetCaptureTarget(out target, out rate) && target == second && Near(rate, 1 - (120 - attractedX) / 100), "Capture recomputes coverage after movement.");
 
         frame.Position = new Vector2(119, 0);
         frame.Move(Vector2.Zero);
         Check(frame.Position == second.Position, "High coverage with weak input still snaps to the target.");
-        frame.Move(new Vector2(0.8f, 0));
+        frame.Move(new Vector2(Config.STICK_FORCE_RATE, 0));
         Check(frame.Position == second.Position, "Input equal to the force threshold stays snapped.");
-        frame.Move(new Vector2(0.81f, 0));
-        Check(Near(frame.Position.X, 128.1f), "Input above the force threshold can leave the center.");
+        float strongInput = Config.STICK_FORCE_RATE + 0.01f;
+        frame.Move(new Vector2(strongInput, 0));
+        Check(Near(frame.Position.X, 120 + strongInput * Config.JOYSTICK_SPEED), "Input above the force threshold can leave the center.");
 
         second.QueueFree();
         await RefreshOverlaps();
@@ -76,7 +78,7 @@ public partial class FrameDetectionTest : Node2D
         first.QueueFree();
         Check(!frame.TryGetCaptureTarget(out _, out _), "Queued targets are excluded from capture immediately.");
         frame.Move(Vector2.Right);
-        Check(!frame.IsDetected && frame.Position == new Vector2(109, 0), "Removing all targets exits safely and preserves ordinary movement.");
+        Check(!frame.IsDetected && frame.Position == new Vector2(99 + Config.JOYSTICK_SPEED, 0), "Removing all targets exits safely and preserves ordinary movement.");
 
         await RefreshOverlaps();
         Check(!frame.TryGetCaptureTarget(out _, out _), "Empty overlaps return no capture target.");
